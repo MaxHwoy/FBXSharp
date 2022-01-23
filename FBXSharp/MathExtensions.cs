@@ -152,5 +152,17 @@ namespace FBXSharp
 
 			return 1.0f;
 		}
+
+		public static int SumTo(this int[][] array, int index)
+		{
+			int count = 0;
+
+			for (int i = 0; i < index; ++i)
+			{
+				count += array[index].Length;
+			}
+
+			return count;
+		}
 	}
 }

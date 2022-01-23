@@ -4,6 +4,7 @@ using FBXSharp.Objective;
 using FBXSharp.ValueTypes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -288,7 +289,7 @@ namespace FBXSharp
 			}
 		}
 
-		private static void BuildGeometryMaterialData(Geometry geometry, IElement element)
+		private static void BuildGeometryMaterialData(Geometry geometry, IElement element, int[] reindexed)
 		{
 			var layerElement = element.FindChild("LayerElementMaterial");
 
@@ -326,11 +327,18 @@ namespace FBXSharp
 
 				if (materials.Attributes[0].Type == IElementAttributeType.ArrayInt32)
 				{
-					var array = materials.Attributes[0].GetElementValue() as int[];
+					var temp = materials.Attributes[0].GetElementValue() as int[];
 
-					if (array.Length == 0)
+					if (temp.Length == 0)
 					{
 						return; // ok but lmao moment?
+					}
+
+					var array = new int[reindexed.Length];
+
+					for (int i = 0; i < array.Length; ++i)
+					{
+						array[i] = temp[reindexed[i]];
 					}
 
 					int value = -1;
@@ -362,14 +370,23 @@ namespace FBXSharp
 					}
 
 					subMeshes[count] = new Geometry.SubMesh(currIndex, array.Length - currIndex, value);
+
+					geometry.InternalSetSubMeshes(subMeshes);
 				}
 				else if (materials.Attributes[0].Type == IElementAttributeType.ArrayInt64)
 				{
-					var array = materials.Attributes[0].GetElementValue() as long[];
+					var temp = materials.Attributes[0].GetElementValue() as long[];
 
-					if (array.Length == 0)
+					if (temp.Length == 0)
 					{
 						return; // ok but lmao moment?
+					}
+
+					var array = new int[reindexed.Length];
+
+					for (int i = 0; i < array.Length; ++i)
+					{
+						array[i] = (int)temp[reindexed[i]];
 					}
 
 					int value = -1;
@@ -380,14 +397,14 @@ namespace FBXSharp
 						if (array[i] != value)
 						{
 							++count;
-							value = (int)array[i];
+							value = array[i];
 						}
 					}
 
 					var subMeshes = new Geometry.SubMesh[count];
 					int currIndex = 0;
 
-					value = (int)array[0];
+					value = array[0];
 					count = 0;
 
 					for (int i = 0; i < array.Length; ++i)
@@ -395,12 +412,14 @@ namespace FBXSharp
 						if (array[i] != value)
 						{
 							subMeshes[count++] = new Geometry.SubMesh(currIndex, i - currIndex, value);
-							value = (int)array[i];
+							value = array[i];
 							currIndex = i;
 						}
 					}
 
 					subMeshes[count] = new Geometry.SubMesh(currIndex, array.Length - currIndex, value);
+
+					geometry.InternalSetSubMeshes(subMeshes);
 				}
 				else
 				{
@@ -814,6 +833,96 @@ namespace FBXSharp
 			}
 		}
 
+		private static void RemapAndMergeSubMeshes(Geometry geometry)
+		{
+			var subMeshIndices = new (int index, int material)[geometry.SubMeshes.Length];
+
+			for (int i = 0; i < geometry.SubMeshes.Length; ++i)
+			{
+				subMeshIndices[i] = (i, geometry.SubMeshes[i].MaterialIndex);
+			}
+
+			Array.Sort(subMeshIndices, (x, y) =>
+			{
+				var comparer = x.material.CompareTo(y.material);
+
+				if (comparer == 0)
+				{
+					return x.index.CompareTo(y.index);
+				}
+
+				return comparer;
+			});
+
+			var sortedIndices = new int[geometry.Indices.Length][];
+			var sortedSubMesh = new Geometry.SubMesh[geometry.SubMeshes.Length];
+
+			for (int i = 0, pos = 0; i < subMeshIndices.Length; ++i)
+			{
+				var subinfo = subMeshIndices[i];
+				var subMesh = geometry.SubMeshes[subinfo.index];
+
+				Array.Copy(geometry.Indices, subMesh.PolygonStart, sortedIndices, pos, subMesh.PolygonCount);
+
+				sortedSubMesh[i] = new Geometry.SubMesh(pos, subMesh.PolygonCount, subinfo.material);
+
+				pos += subMesh.PolygonCount;
+			}
+
+			var grouppings = sortedSubMesh.GroupBy(_ => _.MaterialIndex).ToArray();
+			var newSubMesh = new Geometry.SubMesh[grouppings.Length];
+			var newChannel = new Geometry.Channel[geometry.Channels.Count];
+
+			for (int i = 0, k = 0; i < newSubMesh.Length; ++i)
+			{
+				int count = grouppings[i].Sum(_ => _.PolygonCount);
+
+				newSubMesh[i] = new Geometry.SubMesh(k, count, grouppings[i].Key);
+
+				k += count;
+			}
+
+			for (int i = 0; i < geometry.Channels.Count; ++i)
+			{
+				var channel = geometry.Channels[i];
+				var temparr = new object[channel.Buffer.Length];
+
+				Array.Copy(channel.Buffer, temparr, temparr.Length);
+
+				for (int j = 0; j < sortedSubMesh.Length; ++j)
+				{
+					var subMeshDst = sortedSubMesh[j];
+					var subMeshSrc = geometry.SubMeshes[subMeshIndices[j].index];
+
+					var startDst = sortedIndices.SumTo(subMeshDst.PolygonStart);
+					var startSrc = geometry.Indices.SumTo(subMeshSrc.PolygonStart);
+
+#if DEBUG
+					Debug.Assert(subMeshDst.PolygonCount == subMeshSrc.PolygonCount);
+#endif
+
+					for (int k = 0, pos = 0; k < subMeshDst.PolygonCount; ++k)
+					{
+						var length = sortedIndices[subMeshDst.PolygonStart + k].Length;
+
+#if DEBUG
+						var copair = geometry.Indices[subMeshSrc.PolygonStart + k].Length;
+
+						Debug.Assert(length == copair);
+#endif
+
+						for (int f = 0; f < length; ++f, ++pos)
+						{
+							channel.Buffer.SetValue(temparr[startSrc + pos], startDst + pos);
+						}
+					}
+				}
+			}
+
+			geometry.InternalSetIndices(sortedIndices);
+			geometry.InternalSetSubMeshes(newSubMesh);
+		}
+
 		private static double FBXTimeToSeconds(long value)
 		{
 			return (double)value / 46186158000L;
@@ -865,7 +974,7 @@ namespace FBXSharp
 			{
 				var geometry = new Geometry(element, scene);
 
-				FBXImporter.InternalPrepareGeometry(element, geometry, (flags & LoadFlags.Triangulate) != 0);
+				FBXImporter.InternalPrepareGeometry(element, geometry, flags);
 
 				return geometry;
 			}
@@ -942,7 +1051,7 @@ namespace FBXSharp
 			return new NullNode(element, scene);
 		}
 
-		private static void InternalPrepareGeometry(IElement element, Geometry geometry, bool triangulate)
+		private static void InternalPrepareGeometry(IElement element, Geometry geometry, LoadFlags flags)
 		{
 			var vertices = element.FindChild("Vertices");
 
@@ -973,10 +1082,10 @@ namespace FBXSharp
 				Target = geometry,
 				Vertices = vertexBuffer,
 				Indices = indexBuffer,
-				Triangulate = triangulate,
+				Triangulate = (flags & LoadFlags.Triangulate) != 0,
 			}, out var remapped, out var reindexed);
 
-			FBXImporter.BuildGeometryMaterialData(geometry, element);
+			FBXImporter.BuildGeometryMaterialData(geometry, element, reindexed);
 
 			for (int i = 0; i < element.Children.Length; ++i)
 			{
@@ -991,6 +1100,11 @@ namespace FBXSharp
 					case "LayerElementUV": FBXImporter.BuildGeometryChannelData(ms_uvElement.New(geometry, child, remapped, reindexed)); break;
 					default: break;
 				}
+			}
+
+			if ((flags & LoadFlags.RemapSubmeshes) != 0 && geometry.SubMeshes.Length > 1)
+			{
+				FBXImporter.RemapAndMergeSubMeshes(geometry);
 			}
 		}
 

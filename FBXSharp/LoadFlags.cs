@@ -7,7 +7,8 @@ namespace FBXSharp
 	{
 		None = 0,
 		Triangulate = 1 << 0,
-		IgnoreGeometry = 1 << 1,
-		IgnoreBlendShapes = 1 << 2,
+		RemapSubmeshes = 1 << 1,
+		IgnoreGeometry = 1 << 2,
+		IgnoreBlendShapes = 1 << 3,
 	}
 }

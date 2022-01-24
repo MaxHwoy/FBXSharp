@@ -1,4 +1,5 @@
 ﻿using FBXSharp.Core;
+using FBXSharp.Elementary;
 using FBXSharp.ValueTypes;
 using System;
 
@@ -442,5 +443,173 @@ namespace FBXSharp
 		public static Vector4 ExtendVector(in Vector3 vector) => new Vector4(vector.X, vector.Y, vector.Z);
 
 		public static Vector4 ExtendVector(in Vector3 vector, double w) => new Vector4(vector.X, vector.Y, vector.Z, w);
+
+		public static IElementAttribute GetElementAttribute(object value)
+		{
+			var type = value.GetType();
+
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Boolean: return ElementaryFactory.GetElementAttribute((bool)value);
+				case TypeCode.Char: return ElementaryFactory.GetElementAttribute((char)value);
+				case TypeCode.SByte: return ElementaryFactory.GetElementAttribute((sbyte)value);
+				case TypeCode.Byte: return ElementaryFactory.GetElementAttribute((byte)value);
+				case TypeCode.Int16: return ElementaryFactory.GetElementAttribute((short)value);
+				case TypeCode.UInt16: return ElementaryFactory.GetElementAttribute((ushort)value);
+				case TypeCode.Int32: return ElementaryFactory.GetElementAttribute((int)value);
+				case TypeCode.UInt32: return ElementaryFactory.GetElementAttribute((uint)value);
+				case TypeCode.Int64: return ElementaryFactory.GetElementAttribute((long)value);
+				case TypeCode.UInt64: return ElementaryFactory.GetElementAttribute((ulong)value);
+				case TypeCode.Single: return ElementaryFactory.GetElementAttribute((float)value);
+				case TypeCode.Double: return ElementaryFactory.GetElementAttribute((double)value);
+				case TypeCode.String: return ElementaryFactory.GetElementAttribute(value.ToString());
+			}
+
+			if (type.IsArray)
+			{
+				switch (Type.GetTypeCode(type.GetElementType()))
+				{
+					case TypeCode.Boolean: return ElementaryFactory.GetElementAttribute(value as bool[]);
+					case TypeCode.Char: return ElementaryFactory.GetElementAttribute(value as char[]);
+					case TypeCode.SByte: return ElementaryFactory.GetElementAttribute(value as sbyte[]);
+					case TypeCode.Byte: return ElementaryFactory.GetElementAttribute(value as byte[]);
+					case TypeCode.Int16: return ElementaryFactory.GetElementAttribute(value as short[]);
+					case TypeCode.UInt16: return ElementaryFactory.GetElementAttribute(value as ushort[]);
+					case TypeCode.Int32: return ElementaryFactory.GetElementAttribute(value as int[]);
+					case TypeCode.UInt32: return ElementaryFactory.GetElementAttribute(value as uint[]);
+					case TypeCode.Int64: return ElementaryFactory.GetElementAttribute(value as long[]);
+					case TypeCode.UInt64: return ElementaryFactory.GetElementAttribute(value as ulong[]);
+					case TypeCode.Single: return ElementaryFactory.GetElementAttribute(value as float[]);
+					case TypeCode.Double: return ElementaryFactory.GetElementAttribute(value as double[]);
+				}
+			}
+
+			return ElementaryFactory.GetElementAttribute(value.ToString());
+		}
+
+		public static IElementAttribute GetElementAttribute(bool value)
+		{
+			return new BooleanAttribute(value);
+		}
+		
+		public static IElementAttribute GetElementAttribute(byte value)
+		{
+			return new Int16Attribute(value);
+		}
+		
+		public static IElementAttribute GetElementAttribute(sbyte value)
+		{
+			return new Int16Attribute(value);
+		}
+		
+		public static IElementAttribute GetElementAttribute(char value)
+		{
+			return new Int16Attribute((short)value);
+		}
+		
+		public static IElementAttribute GetElementAttribute(short value)
+		{
+			return new Int16Attribute(value);
+		}
+		
+		public static IElementAttribute GetElementAttribute(ushort value)
+		{
+			return new Int16Attribute((short)value);
+		}
+		
+		public static IElementAttribute GetElementAttribute(int value)
+		{
+			return new Int32Attribute(value);
+		}
+		
+		public static IElementAttribute GetElementAttribute(uint value)
+		{
+			return new Int32Attribute((int)value);
+		}
+		
+		public static IElementAttribute GetElementAttribute(long value)
+		{
+			return new Int64Attribute(value);
+		}
+		
+		public static IElementAttribute GetElementAttribute(ulong value)
+		{
+			return new Int64Attribute((long)value);
+		}
+
+		public static IElementAttribute GetElementAttribute(float value)
+		{
+			return new SingleAttribute(value);
+		}
+
+		public static IElementAttribute GetElementAttribute(double value)
+		{
+			return new DoubleAttribute(value);
+		}
+
+		public static IElementAttribute GetElementAttribute(string value)
+		{
+			return new StringAttribute(value);
+		}
+
+		public static IElementAttribute GetElementAttribute(bool[] value)
+		{
+			return new ArrayBooleanAttribute(value);
+		}
+
+		public static IElementAttribute GetElementAttribute(byte[] value)
+		{
+			return new BinaryAttribute(value);
+		}
+
+		public static IElementAttribute GetElementAttribute(sbyte[] value)
+		{
+			return new BinaryAttribute(ElementaryFactory.DeepGenericCopy<sbyte, byte>(value));
+		}
+
+		public static IElementAttribute GetElementAttribute(char[] value)
+		{
+			return new ArrayInt32Attribute(ElementaryFactory.DeepGenericCopy<char, int>(value));
+		}
+
+		public static IElementAttribute GetElementAttribute(short[] value)
+		{
+			return new ArrayInt32Attribute(ElementaryFactory.DeepGenericCopy<short, int>(value));
+		}
+
+		public static IElementAttribute GetElementAttribute(ushort[] value)
+		{
+			return new ArrayInt32Attribute(ElementaryFactory.DeepGenericCopy<ushort, int>(value));
+		}
+
+		public static IElementAttribute GetElementAttribute(int[] value)
+		{
+			return new ArrayInt32Attribute(value);
+		}
+
+		public static IElementAttribute GetElementAttribute(uint[] value)
+		{
+			return new ArrayInt32Attribute(ElementaryFactory.DeepGenericCopy<uint, int>(value));
+		}
+
+		public static IElementAttribute GetElementAttribute(long[] value)
+		{
+			return new ArrayInt64Attribute(value);
+		}
+
+		public static IElementAttribute GetElementAttribute(ulong[] value)
+		{
+			return new ArrayInt64Attribute(ElementaryFactory.DeepGenericCopy<ulong, long>(value));
+		}
+
+		public static IElementAttribute GetElementAttribute(float[] value)
+		{
+			return new ArraySingleAttribute(value);
+		}
+
+		public static IElementAttribute GetElementAttribute(double[] value)
+		{
+			return new ArrayDoubleAttribute(value);
+		}
 	}
 }

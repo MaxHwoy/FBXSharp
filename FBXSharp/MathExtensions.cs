@@ -164,5 +164,18 @@ namespace FBXSharp
 
 			return count;
 		}
+
+		public static string Join(this string[] array, string separator)
+		{
+			var builder = new System.Text.StringBuilder();
+
+			for (int i = 0; i < array.Length; ++i)
+			{
+				builder.Append(array[i]);
+				builder.Append(separator);
+			}
+
+			return builder.ToString();
+		}
 	}
 }

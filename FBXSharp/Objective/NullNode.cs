@@ -30,55 +30,55 @@ namespace FBXSharp.Objective
 		public Vector3? RotationOffset
 		{
 			get => this.InternalGetPrimitive<Vector3>(nameof(this.RotationOffset), IElementPropertyType.Double3);
-			set => this.InternalSetPrimitive<Vector3>(nameof(this.RotationOffset), IElementPropertyType.Double3, value, "Vector3D", "Vector3D");
+			set => this.InternalSetPrimitive<Vector3>(nameof(this.RotationOffset), IElementPropertyType.Double3, value, "Vector3D", "Vector3D", IElementPropertyFlags.Animatable);
 		}
 
 		public Vector3? RotationPivot
 		{
 			get => this.InternalGetPrimitive<Vector3>(nameof(this.RotationPivot), IElementPropertyType.Double3);
-			set => this.InternalSetPrimitive<Vector3>(nameof(this.RotationPivot), IElementPropertyType.Double3, value, "Vector3D", "Vector3D");
+			set => this.InternalSetPrimitive<Vector3>(nameof(this.RotationPivot), IElementPropertyType.Double3, value, "Vector3D", "Vector3D", IElementPropertyFlags.Animatable);
 		}
 
 		public Vector3? PreRotation
 		{
 			get => this.InternalGetPrimitive<Vector3>(nameof(this.PreRotation), IElementPropertyType.Double3);
-			set => this.InternalSetPrimitive<Vector3>(nameof(this.PreRotation), IElementPropertyType.Double3, value, "Vector3D", "Vector3D");
+			set => this.InternalSetPrimitive<Vector3>(nameof(this.PreRotation), IElementPropertyType.Double3, value, "Vector3D", "Vector3D", IElementPropertyFlags.Animatable);
 		}
 
 		public Vector3? PostRotation
 		{
 			get => this.InternalGetPrimitive<Vector3>(nameof(this.PostRotation), IElementPropertyType.Double3);
-			set => this.InternalSetPrimitive<Vector3>(nameof(this.PostRotation), IElementPropertyType.Double3, value, "Vector3D", "Vector3D");
+			set => this.InternalSetPrimitive<Vector3>(nameof(this.PostRotation), IElementPropertyType.Double3, value, "Vector3D", "Vector3D", IElementPropertyFlags.Animatable);
 		}
 
 		public Vector3? ScalingOffset
 		{
 			get => this.InternalGetPrimitive<Vector3>(nameof(this.ScalingOffset), IElementPropertyType.Double3);
-			set => this.InternalSetPrimitive<Vector3>(nameof(this.ScalingOffset), IElementPropertyType.Double3, value, "Vector3D", "Vector3D");
+			set => this.InternalSetPrimitive<Vector3>(nameof(this.ScalingOffset), IElementPropertyType.Double3, value, "Vector3D", "Vector3D", IElementPropertyFlags.Animatable);
 		}
 
 		public Vector3? ScalingPivot
 		{
 			get => this.InternalGetPrimitive<Vector3>(nameof(this.ScalingPivot), IElementPropertyType.Double3);
-			set => this.InternalSetPrimitive<Vector3>(nameof(this.ScalingPivot), IElementPropertyType.Double3, value, "Vector3D", "Vector3D");
+			set => this.InternalSetPrimitive<Vector3>(nameof(this.ScalingPivot), IElementPropertyType.Double3, value, "Vector3D", "Vector3D", IElementPropertyFlags.Animatable);
 		}
 
 		public Vector3? LocalTranslation
 		{
 			get => this.InternalGetPrimitive<Vector3>("Lcl Translation", IElementPropertyType.Double3);
-			set => this.InternalSetPrimitive<Vector3>("Lcl Translation", IElementPropertyType.Double3, value, "Lcl Translation", "Lcl Translation");
+			set => this.InternalSetPrimitive<Vector3>("Lcl Translation", IElementPropertyType.Double3, value, "Lcl Translation", "Lcl Translation", IElementPropertyFlags.Animatable);
 		}
 
 		public Vector3? LocalRotation
 		{
 			get => this.InternalGetPrimitive<Vector3>("Lcl Rotation", IElementPropertyType.Double3);
-			set => this.InternalSetPrimitive<Vector3>("Lcl Rotation", IElementPropertyType.Double3, value, "Lcl Rotation", "Lcl Rotation");
+			set => this.InternalSetPrimitive<Vector3>("Lcl Rotation", IElementPropertyType.Double3, value, "Lcl Rotation", "Lcl Rotation", IElementPropertyFlags.Animatable);
 		}
 
 		public Vector3? LocalScale
 		{
 			get => this.InternalGetPrimitive<Vector3>("Lcl Scaling", IElementPropertyType.Double3);
-			set => this.InternalSetPrimitive<Vector3>("Lcl Scaling", IElementPropertyType.Double3, value, "Lcl Scaling", "Lcl Scaling");
+			set => this.InternalSetPrimitive<Vector3>("Lcl Scaling", IElementPropertyType.Double3, value, "Lcl Scaling", "Lcl Scaling", IElementPropertyFlags.Animatable);
 		}
 
 		internal NullNode(IElement element, IScene scene) : base(element, scene)

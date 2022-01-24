@@ -14,5 +14,10 @@
 		{
 			this.Time = (double)time / 46186158000L;
 		}
+
+		public long ToLong()
+		{
+			return (long)(this.Time * 46186158000L);
+		}
 	}
 }

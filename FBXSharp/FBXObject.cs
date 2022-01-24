@@ -157,7 +157,7 @@ namespace FBXSharp
 			return null;
 		}
 
-		protected void InternalSetColor(string name, ColorRGB? value, string primary, string secondary)
+		protected void InternalSetColor(string name, ColorRGB? value, string primary, string secondary, IElementPropertyFlags flags)
 		{
 			var attribute = this.GetProperty(name);
 
@@ -165,7 +165,7 @@ namespace FBXSharp
 			{
 				if (value.HasValue)
 				{
-					this.AddProperty(new FBXProperty<Vector3>(primary, secondary, name, IElementPropertyFlags.Imported, value.Value));
+					this.AddProperty(new FBXProperty<Vector3>(primary, secondary, name, flags | IElementPropertyFlags.Imported, value.Value));
 				}
 			}
 			else if (attribute.Type == IElementPropertyType.Double3)
@@ -193,7 +193,7 @@ namespace FBXSharp
 			return (T)attribute.GetPropertyValue();
 		}
 
-		protected void InternalSetPrimitive<T>(string name, IElementPropertyType type, T? value, string primary, string secondary) where T : struct
+		protected void InternalSetPrimitive<T>(string name, IElementPropertyType type, T? value, string primary, string secondary, IElementPropertyFlags flags = IElementPropertyFlags.None) where T : struct
 		{
 			var attribute = this.GetProperty(name);
 
@@ -201,7 +201,7 @@ namespace FBXSharp
 			{
 				if (value.HasValue)
 				{
-					this.AddProperty(new FBXProperty<T>(primary, secondary, name, IElementPropertyFlags.Imported, value.Value));
+					this.AddProperty(new FBXProperty<T>(primary, secondary, name, flags | IElementPropertyFlags.Imported, value.Value));
 				}
 			}
 			else if (attribute.Type == type)
@@ -330,5 +330,112 @@ namespace FBXSharp
 			// some generic shenanigans?
 		}
 		*/
+	}
+
+	public abstract class BuilderBase
+	{
+		protected readonly IScene m_scene;
+		protected readonly List<FBXPropertyBase> m_properties;
+		protected string m_name;
+
+		public BuilderBase(IScene scene)
+		{
+			this.m_scene = scene;
+			this.m_properties = new List<FBXPropertyBase>();
+		}
+
+		protected void SetObjectName(string name)
+		{
+			this.m_name = name;
+		}
+
+		protected void SetFBXProperty<T>(string name, T value, bool isUser)
+		{
+			var flag = isUser
+				? IElementPropertyFlags.Animatable | IElementPropertyFlags.Animated | IElementPropertyFlags.UserDefined
+				: IElementPropertyFlags.None;
+
+			this.SetFBXProperty(name, value, flag);
+		}
+		protected void SetFBXProperty<T>(string name, T value, IElementPropertyFlags flags)
+		{
+			var type = Type.GetTypeCode(typeof(T));
+			var flag = flags | IElementPropertyFlags.Imported;
+
+			string primary = null;
+
+			switch (type)
+			{
+				case TypeCode.Boolean: primary = "bool"; break;
+				case TypeCode.Char: primary = "Short"; break;
+				case TypeCode.SByte: primary = "Byte"; break;
+				case TypeCode.Byte: primary = "UByte"; break;
+				case TypeCode.Int16: primary = "Short"; break;
+				case TypeCode.UInt16: primary = "UShort"; break;
+				case TypeCode.Int32: primary = "int"; break;
+				case TypeCode.UInt32: primary = "UInteger"; break;
+				case TypeCode.Int64: primary = "LongLong"; break;
+				case TypeCode.UInt64: primary = "ULongLong"; break;
+				case TypeCode.Single: primary = "float"; break;
+				case TypeCode.Double: primary = "double"; break;
+				case TypeCode.DateTime: primary = "DateTime"; break;
+				case TypeCode.String: primary = "KString"; break;
+			}
+
+			if (primary is null)
+			{
+				if (typeof(T) == typeof(Half))
+				{
+					primary = "HalfFloat";
+				}
+				else if (typeof(T) == typeof(Vector2))
+				{
+					primary = "Vector2D";
+				}
+				else if (typeof(T) == typeof(Vector3))
+				{
+					primary = "Vector3D";
+				}
+				else if (typeof(T) == typeof(Vector4))
+				{
+					primary = "Vector4D";
+				}
+				else if (typeof(T) == typeof(Matrix4x4))
+				{
+					primary = "matrix4x4";
+				}
+				else if (typeof(T) == typeof(Enumeration))
+				{
+					primary = "enum";
+				}
+				else if (typeof(T) == typeof(TimeBase))
+				{
+					primary = "KTime";
+				}
+				else if (typeof(T) == typeof(Reference))
+				{
+					primary = "Reference";
+				}
+				else if (typeof(T) == typeof(BinaryBlob))
+				{
+					primary = "Blob";
+				}
+				else if (typeof(T) == typeof(Distance))
+				{
+					primary = "Distance";
+				}
+				else
+				{
+					primary = "object";
+				}
+			}
+
+			this.m_properties.Add(new FBXProperty<T>(primary, String.Empty, name, flag, value));
+		}
+		protected void SetFBXProperty<T>(FBXProperty<T> property)
+		{
+			property.Flags |= IElementPropertyFlags.Imported;
+			this.m_properties.Add(property);
+		}
 	}
 }

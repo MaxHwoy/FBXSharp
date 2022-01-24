@@ -19,5 +19,10 @@ namespace FBXSharp
 		}
 
 		public IElement FindChild(string name) => Array.Find(this.Children, _ => _.Name == name);
+
+		public static Element WithAttribute(string name, IElementAttribute attribute)
+		{
+			return new Element(name, null, new IElementAttribute[] { attribute });
+		}
 	}
 }

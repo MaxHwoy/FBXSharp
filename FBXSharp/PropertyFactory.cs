@@ -238,6 +238,11 @@ namespace FBXSharp
 			return result;
 		}
 
+		private static bool IsLimitExtendibleFlag(IElementPropertyFlags flags)
+		{
+			return (flags & IElementPropertyFlags.Animatable) != 0 && (flags & IElementPropertyFlags.UserDefined) != 0;
+		}
+
 		private static FBXProperty<T> InternalCreateProperty<T>(IElement element, T value)
 		{
 			return new FBXProperty<T>
@@ -248,6 +253,44 @@ namespace FBXSharp
 				PropertyFactory.InternalParseFlags(element),
 				value
 			);
+		}
+
+		private static IElementAttribute[] InternalMakeAttribArray(IElementProperty property, int numAttribs)
+		{
+			var attributes = new IElementAttribute[numAttribs];
+			string useFlag = String.Empty;
+
+			if ((property.Flags & IElementPropertyFlags.Animatable) != 0)
+			{
+				useFlag += "A";
+
+				if ((property.Flags & IElementPropertyFlags.Animated) != 0)
+				{
+					useFlag += "+";
+				}
+			}
+
+			if ((property.Flags & IElementPropertyFlags.UserDefined) != 0)
+			{
+				useFlag += "U";
+			}
+
+			if ((property.Flags & IElementPropertyFlags.Hidden) != 0)
+			{
+				useFlag += "H";
+			}
+
+			if ((property.Flags & IElementPropertyFlags.NotSavable) != 0)
+			{
+				useFlag += "N";
+			}
+
+			attributes[0] = ElementaryFactory.GetElementAttribute(property.Name);
+			attributes[1] = ElementaryFactory.GetElementAttribute(property.Primary);
+			attributes[2] = ElementaryFactory.GetElementAttribute(property.Secondary);
+			attributes[3] = ElementaryFactory.GetElementAttribute(useFlag);
+
+			return attributes;
 		}
 
 		private static IElementProperty AsAttributeAny(IElement element)
@@ -751,6 +794,359 @@ namespace FBXSharp
 			));
 		}
 
+		private static IElement AsPrimitiveAny(IElementProperty property)
+		{
+			var value = property.GetPropertyValue();
+
+			if (value is null)
+			{
+				return new Element("P", null, PropertyFactory.InternalMakeAttribArray(property, 4));
+			}
+
+			if (value is object[] array)
+			{
+				var attrib = PropertyFactory.InternalMakeAttribArray(property, 4 + array.Length);
+
+				for (int i = 0; i < array.Length; ++i)
+				{
+					attrib[4 + i] = ElementaryFactory.GetElementAttribute(array[i]);
+				}
+
+				return new Element("P", null, attrib);
+			}
+
+			var result = PropertyFactory.InternalMakeAttribArray(property, 5);
+
+			result[4] = ElementaryFactory.GetElementAttribute(value);
+
+			return new Element("P", null, result);
+		}
+
+		private static IElement AsPrimitiveSByte(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((sbyte)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((sbyte)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((sbyte)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveByte(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((byte)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((byte)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((byte)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveShort(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((short)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((short)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((short)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveUShort(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((ushort)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((ushort)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((ushort)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveUInt(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((uint)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((uint)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((uint)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveLong(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((long)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((long)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((long)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveULong(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((ulong)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((ulong)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((ulong)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveHalf(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(((Half)property.GetPropertyValue()).ToSingle());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute(((Half)property.GetPropertyMin()).ToSingle());
+				attrib[6] = ElementaryFactory.GetElementAttribute(((Half)property.GetPropertyMax()).ToSingle());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveBool(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((bool)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((bool)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((bool)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveInt(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((int)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((int)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((int)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveFloat(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((float)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((float)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((float)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveDouble(IElementProperty property)
+		{
+			var isUser = PropertyFactory.IsLimitExtendibleFlag(property.Flags);
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 7 : 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute((double)property.GetPropertyValue());
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute((double)property.GetPropertyMin());
+				attrib[6] = ElementaryFactory.GetElementAttribute((double)property.GetPropertyMax());
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveDouble2(IElementProperty property)
+		{
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, 6);
+			var vector = (Vector2)property.GetPropertyValue();
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(vector.X);
+			attrib[5] = ElementaryFactory.GetElementAttribute(vector.Y);
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveDouble3(IElementProperty property)
+		{
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, 7);
+			var vector = (Vector3)property.GetPropertyValue();
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(vector.X);
+			attrib[5] = ElementaryFactory.GetElementAttribute(vector.Y);
+			attrib[6] = ElementaryFactory.GetElementAttribute(vector.Z);
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveDouble4(IElementProperty property)
+		{
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, 8);
+			var vector = (Vector4)property.GetPropertyValue();
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(vector.X);
+			attrib[5] = ElementaryFactory.GetElementAttribute(vector.Y);
+			attrib[6] = ElementaryFactory.GetElementAttribute(vector.Z);
+			attrib[7] = ElementaryFactory.GetElementAttribute(vector.W);
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveDouble4x4(IElementProperty property)
+		{
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, 20);
+			var matrix = (Matrix4x4)property.GetPropertyValue();
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(matrix.M11);
+			attrib[5] = ElementaryFactory.GetElementAttribute(matrix.M12);
+			attrib[6] = ElementaryFactory.GetElementAttribute(matrix.M13);
+			attrib[7] = ElementaryFactory.GetElementAttribute(matrix.M14);
+			attrib[8] = ElementaryFactory.GetElementAttribute(matrix.M21);
+			attrib[9] = ElementaryFactory.GetElementAttribute(matrix.M22);
+			attrib[10] = ElementaryFactory.GetElementAttribute(matrix.M23);
+			attrib[11] = ElementaryFactory.GetElementAttribute(matrix.M24);
+			attrib[12] = ElementaryFactory.GetElementAttribute(matrix.M31);
+			attrib[13] = ElementaryFactory.GetElementAttribute(matrix.M32);
+			attrib[14] = ElementaryFactory.GetElementAttribute(matrix.M33);
+			attrib[15] = ElementaryFactory.GetElementAttribute(matrix.M34);
+			attrib[16] = ElementaryFactory.GetElementAttribute(matrix.M41);
+			attrib[17] = ElementaryFactory.GetElementAttribute(matrix.M42);
+			attrib[18] = ElementaryFactory.GetElementAttribute(matrix.M43);
+			attrib[19] = ElementaryFactory.GetElementAttribute(matrix.M44);
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveEnum(IElementProperty property)
+		{
+			var isUser = (property.Flags & IElementPropertyFlags.UserDefined) != 0;
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, isUser ? 6 : 5);
+			var enumpr = property.GetPropertyValue() as Enumeration;
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(enumpr.Value);
+
+			if (isUser)
+			{
+				attrib[5] = ElementaryFactory.GetElementAttribute(enumpr.Flags.Join("~"));
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveString(IElementProperty property)
+		{
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(property.GetPropertyValue().ToString());
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveTime(IElementProperty property)
+		{
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(((TimeBase)property.GetPropertyValue()).ToLong());
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveReference(IElementProperty property)
+		{
+			return new Element("P", null, PropertyFactory.InternalMakeAttribArray(property, 4));
+		}
+
+		private static IElement AsPrimitiveBlob(IElementProperty property)
+		{
+			var blober = property.GetPropertyValue() as BinaryBlob;
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, 4 + blober.Datas.Length);
+
+			for (int i = 0; i < blober.Datas.Length; ++i)
+			{
+				attrib[4 + i] = ElementaryFactory.GetElementAttribute(blober.Datas[i]);
+			}
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveDistance(IElementProperty property)
+		{
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, 6);
+			var vector = (Distance)property.GetPropertyValue();
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(vector.Value);
+			attrib[5] = ElementaryFactory.GetElementAttribute(vector.Unit);
+
+			return new Element("P", null, attrib);
+		}
+
+		private static IElement AsPrimitiveDateTime(IElementProperty property)
+		{
+			var attrib = PropertyFactory.InternalMakeAttribArray(property, 5);
+
+			attrib[4] = ElementaryFactory.GetElementAttribute(((DateTime)property.GetPropertyValue()).ToString("dd/MM/yyyy HH:mm:ss.fff"));
+
+			return new Element("P", null, attrib);
+		}
+
 		public static IElementProperty AsElementProperty(IElement element)
 		{
 			if (element is null || element.Attributes.Length < 4)
@@ -772,6 +1168,38 @@ namespace FBXSharp
 				{
 					return PropertyFactory.ms_activators[IElementPropertyType.Undefined].Invoke(element);
 				}
+			}
+		}
+
+		public static IElement AsElement(IElementProperty property)
+		{
+			switch (property.Type)
+			{
+				case IElementPropertyType.Undefined: return PropertyFactory.AsPrimitiveAny(property);
+				case IElementPropertyType.SByte: return PropertyFactory.AsPrimitiveSByte(property);
+				case IElementPropertyType.Byte: return PropertyFactory.AsPrimitiveByte(property);
+				case IElementPropertyType.Short: return PropertyFactory.AsPrimitiveShort(property);
+				case IElementPropertyType.UShort: return PropertyFactory.AsPrimitiveUShort(property);
+				case IElementPropertyType.UInt: return PropertyFactory.AsPrimitiveUInt(property);
+				case IElementPropertyType.Long: return PropertyFactory.AsPrimitiveLong(property);
+				case IElementPropertyType.ULong: return PropertyFactory.AsPrimitiveULong(property);
+				case IElementPropertyType.Half: return PropertyFactory.AsPrimitiveHalf(property);
+				case IElementPropertyType.Bool: return PropertyFactory.AsPrimitiveBool(property);
+				case IElementPropertyType.Int: return PropertyFactory.AsPrimitiveInt(property);
+				case IElementPropertyType.Float: return PropertyFactory.AsPrimitiveFloat(property);
+				case IElementPropertyType.Double: return PropertyFactory.AsPrimitiveDouble(property);
+				case IElementPropertyType.Double2: return PropertyFactory.AsPrimitiveDouble2(property);
+				case IElementPropertyType.Double3: return PropertyFactory.AsPrimitiveDouble3(property);
+				case IElementPropertyType.Double4: return PropertyFactory.AsPrimitiveDouble4(property);
+				case IElementPropertyType.Double4x4: return PropertyFactory.AsPrimitiveDouble4x4(property);
+				case IElementPropertyType.Enum: return PropertyFactory.AsPrimitiveEnum(property);
+				case IElementPropertyType.String: return PropertyFactory.AsPrimitiveString(property);
+				case IElementPropertyType.Time: return PropertyFactory.AsPrimitiveTime(property);
+				case IElementPropertyType.Reference: return PropertyFactory.AsPrimitiveReference(property);
+				case IElementPropertyType.Blob: return PropertyFactory.AsPrimitiveBlob(property);
+				case IElementPropertyType.Distance: return PropertyFactory.AsPrimitiveDistance(property);
+				case IElementPropertyType.DateTime: return PropertyFactory.AsPrimitiveDateTime(property);
+				default: return null;
 			}
 		}
 	}

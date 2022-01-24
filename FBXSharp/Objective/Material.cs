@@ -43,78 +43,78 @@ namespace FBXSharp.Objective
 		public ColorRGB? DiffuseColor
 		{
 			get => this.InternalGetColor(nameof(this.DiffuseColor));
-			set => this.InternalSetColor(nameof(this.DiffuseColor), value, "Color", String.Empty);
+			set => this.InternalSetColor(nameof(this.DiffuseColor), value, "Color", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public ColorRGB? SpecularColor
 		{
 			get => this.InternalGetColor(nameof(this.SpecularColor));
-			set => this.InternalSetColor(nameof(this.SpecularColor), value, "Color", String.Empty);
+			set => this.InternalSetColor(nameof(this.SpecularColor), value, "Color", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public ColorRGB? ReflectionColor
 		{
 			get => this.InternalGetColor(nameof(this.ReflectionColor));
-			set => this.InternalSetColor(nameof(this.ReflectionColor), value, "Color", String.Empty);
+			set => this.InternalSetColor(nameof(this.ReflectionColor), value, "Color", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public ColorRGB? AmbientColor
 		{
 			get => this.InternalGetColor(nameof(this.AmbientColor));
-			set => this.InternalSetColor(nameof(this.AmbientColor), value, "Color", String.Empty);
+			set => this.InternalSetColor(nameof(this.AmbientColor), value, "Color", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public ColorRGB? EmissiveColor
 		{
 			get => this.InternalGetColor(nameof(this.EmissiveColor));
-			set => this.InternalSetColor(nameof(this.EmissiveColor), value, "Color", String.Empty);
+			set => this.InternalSetColor(nameof(this.EmissiveColor), value, "Color", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public ColorRGB? TransparentColor
 		{
 			get => this.InternalGetColor(nameof(this.TransparentColor));
-			set => this.InternalSetColor(nameof(this.TransparentColor), value, "Color", String.Empty);
+			set => this.InternalSetColor(nameof(this.TransparentColor), value, "Color", String.Empty, IElementPropertyFlags.Animatable);
 		}
 
 		public double? DiffuseFactor
 		{
 			get => this.InternalGetPrimitive<double>(nameof(this.DiffuseFactor), IElementPropertyType.Double);
-			set => this.InternalSetPrimitive<double>(nameof(this.DiffuseFactor), IElementPropertyType.Double, value, "Number", String.Empty);
+			set => this.InternalSetPrimitive<double>(nameof(this.DiffuseFactor), IElementPropertyType.Double, value, "Number", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public double? SpecularFactor
 		{
 			get => this.InternalGetPrimitive<double>(nameof(this.SpecularFactor), IElementPropertyType.Double);
-			set => this.InternalSetPrimitive<double>(nameof(this.SpecularFactor), IElementPropertyType.Double, value, "Number", String.Empty);
+			set => this.InternalSetPrimitive<double>(nameof(this.SpecularFactor), IElementPropertyType.Double, value, "Number", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public double? ReflectionFactor
 		{
 			get => this.InternalGetPrimitive<double>(nameof(this.ReflectionFactor), IElementPropertyType.Double);
-			set => this.InternalSetPrimitive<double>(nameof(this.ReflectionFactor), IElementPropertyType.Double, value, "Number", String.Empty);
+			set => this.InternalSetPrimitive<double>(nameof(this.ReflectionFactor), IElementPropertyType.Double, value, "Number", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public double? Shininess
 		{
 			get => this.InternalGetPrimitive<double>(nameof(this.Shininess), IElementPropertyType.Double);
-			set => this.InternalSetPrimitive<double>(nameof(this.Shininess), IElementPropertyType.Double, value, "Number", String.Empty);
+			set => this.InternalSetPrimitive<double>(nameof(this.Shininess), IElementPropertyType.Double, value, "Number", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public double? ShininessExponent
 		{
 			get => this.InternalGetPrimitive<double>(nameof(this.ShininessExponent), IElementPropertyType.Double);
-			set => this.InternalSetPrimitive<double>(nameof(this.ShininessExponent), IElementPropertyType.Double, value, "Number", String.Empty);
+			set => this.InternalSetPrimitive<double>(nameof(this.ShininessExponent), IElementPropertyType.Double, value, "Number", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public double? AmbientFactor
 		{
 			get => this.InternalGetPrimitive<double>(nameof(this.AmbientFactor), IElementPropertyType.Double);
-			set => this.InternalSetPrimitive<double>(nameof(this.AmbientFactor), IElementPropertyType.Double, value, "Number", String.Empty);
+			set => this.InternalSetPrimitive<double>(nameof(this.AmbientFactor), IElementPropertyType.Double, value, "Number", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public double? BumpFactor
 		{
 			get => this.InternalGetPrimitive<double>(nameof(this.BumpFactor), IElementPropertyType.Double);
-			set => this.InternalSetPrimitive<double>(nameof(this.BumpFactor), IElementPropertyType.Double, value, "double", "Number");
+			set => this.InternalSetPrimitive<double>(nameof(this.BumpFactor), IElementPropertyType.Double, value, "double", "Number", IElementPropertyFlags.Animatable);
 		}
 		public double? EmissiveFactor
 		{
 			get => this.InternalGetPrimitive<double>(nameof(this.EmissiveFactor), IElementPropertyType.Double);
-			set => this.InternalSetPrimitive<double>(nameof(this.EmissiveFactor), IElementPropertyType.Double, value, "Number", String.Empty);
+			set => this.InternalSetPrimitive<double>(nameof(this.EmissiveFactor), IElementPropertyType.Double, value, "Number", String.Empty, IElementPropertyFlags.Animatable);
 		}
 		public double? TransparencyFactor
 		{
 			get => this.InternalGetPrimitive<double>(nameof(this.TransparencyFactor), IElementPropertyType.Double);
-			set => this.InternalSetPrimitive<double>(nameof(this.TransparencyFactor), IElementPropertyType.Double, value, "Number", String.Empty);
+			set => this.InternalSetPrimitive<double>(nameof(this.TransparencyFactor), IElementPropertyType.Double, value, "Number", String.Empty, IElementPropertyFlags.Animatable);
 		}
 
 		internal Material(IElement element, IScene scene) : base(element, scene)
@@ -142,5 +142,119 @@ namespace FBXSharp.Objective
 		}
 
 		internal void InternalSetChannel(in Channel channel) => this.m_channels.Add(channel);
+	}
+
+	public class MaterialBuilder : BuilderBase
+	{
+		public enum ColorType
+		{
+			DiffuseColor,
+			SpecularColor,
+			ReflectionColor,
+			AmbientColor,
+			EmissiveColor,
+			TransparentColor,
+		}
+
+		public enum FactorType
+		{
+			DiffuseFactor,
+			SpecularFactor,
+			ReflectionFactor,
+			Shininess,
+			ShininessExponent,
+			AmbientFactor,
+			BumpFactor,
+			EmissiveFactor,
+			TransparencyFactor,
+		}
+
+		public enum ChannelType
+		{
+			DiffuseColor,
+			NormalMap,
+			HeightMap,
+			ReflectionColor,
+			AmbientColor,
+			EmissiveColor,
+			SpecularColor,
+			TransparentColor,
+		}
+
+		private readonly List<Material.Channel> m_channels;
+
+		public MaterialBuilder(IScene scene) : base(scene)
+		{
+			this.m_channels = new List<Material.Channel>();
+		}
+
+		public MaterialBuilder WithName(string name)
+		{
+			this.SetObjectName(name);
+			return this;
+		}
+
+		public MaterialBuilder WithFBXProperty<T>(string name, T value, bool isUser = false)
+		{
+			this.SetFBXProperty(name, value, isUser);
+			return this;
+		}
+		public MaterialBuilder WithFBXProperty<T>(string name, T value, IElementPropertyFlags flags)
+		{
+			this.SetFBXProperty(name, value, flags);
+			return this;
+		}
+		public MaterialBuilder WithFBXProperty<T>(FBXProperty<T> property)
+		{
+			this.SetFBXProperty(property);
+			return this;
+		}
+
+		public MaterialBuilder WithChannel(ChannelType type, Texture texture)
+		{
+			return this.WithChannel(type.ToString(), texture);
+		}
+		public MaterialBuilder WithChannel(string name, Texture texture)
+		{
+			return this.WithChannel(new Material.Channel(name, texture));
+		}
+		public MaterialBuilder WithChannel(in Material.Channel channel)
+		{
+			if (channel.Texture is null)
+			{
+				throw new ArgumentNullException($"Channel {channel.Name} cannot have null texture");
+			}
+
+			this.m_channels.Add(channel);
+			return this;
+		}
+
+		public MaterialBuilder WithColor(ColorType type, ColorRGB color)
+		{
+			return this.WithColor(type.ToString(), color);
+		}
+		public MaterialBuilder WithColor(string name, ColorRGB color)
+		{
+			var flag = IElementPropertyFlags.Imported | IElementPropertyFlags.Animatable;
+			var prop = new FBXProperty<ColorRGB>("Color", String.Empty, name, flag, color);
+
+			this.SetFBXProperty(prop);
+			return this;
+		}
+
+		public MaterialBuilder WithFactor(FactorType type, double factor)
+		{
+			return this.WithFactor(type.ToString(), factor);
+		}
+		public MaterialBuilder WithFactor(string name, double factor)
+		{
+			var flag = IElementPropertyFlags.Imported | IElementPropertyFlags.Animatable;
+			var p2nd = name.StartsWith("Bump") ? "Number" : String.Empty;
+			var p1st = String.IsNullOrEmpty(p2nd) ? "Number" : "double";
+			var prop = new FBXProperty<double>(p1st, p2nd, name, flag, factor);
+
+			this.SetFBXProperty(prop);
+			return this;
+		}
 	}
 }

@@ -1484,6 +1484,7 @@ namespace FBXSharp
 			{
 				if (@object.Type != FBXObjectType.Root && @object.Type != FBXObjectType.NodeAttribute)
 				{
+					@object.SetNewID(@object.GetHashCode());
 					scene.InternalAddObject(@object);
 				}
 			}

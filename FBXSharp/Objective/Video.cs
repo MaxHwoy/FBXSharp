@@ -15,11 +15,7 @@ namespace FBXSharp.Objective
 
 		public override FBXObjectType Type => Video.FType;
 
-		public byte[] Content
-		{
-			get => this.m_content;
-			set => this.m_content = value ?? Array.Empty<byte>();
-		}
+		public byte[] Content => this.m_content;
 
 		public string AbsolutePath => this.m_absolute;
 
@@ -35,7 +31,7 @@ namespace FBXSharp.Objective
 
 			if (!(content is null) && content.Attributes.Length > 0 && content.Attributes[0].Type == IElementAttributeType.Binary)
 			{
-				this.Content = content.Attributes[0].GetElementValue() as byte[];
+				this.m_content = content.Attributes[0].GetElementValue() as byte[];
 			}
 			else
 			{
@@ -92,6 +88,18 @@ namespace FBXSharp.Objective
 
 			this.m_relative = path;
 			this.m_absolute = Path.GetFullPath(path);
+		}
+
+		public void SetContent(byte[] content)
+		{
+			this.m_content = content;
+
+			if (content is null)
+			{
+				return;
+			}
+
+			// #TODO : detect mipmaps and texture type
 		}
 	}
 }

@@ -183,7 +183,7 @@ namespace FBXSharp.Objective
 
 		private readonly List<Material.Channel> m_channels;
 
-		public MaterialBuilder(IScene scene) : base(scene)
+		public MaterialBuilder(Scene scene) : base(scene)
 		{
 			this.m_channels = new List<Material.Channel>();
 		}

@@ -923,16 +923,6 @@ namespace FBXSharp
 			geometry.InternalSetSubMeshes(newSubMesh);
 		}
 
-		private static double FBXTimeToSeconds(long value)
-		{
-			return (double)value / 46186158000L;
-		}
-
-		private static double SecondsToFBXTime(double value)
-		{
-			return (long)(value * 46186158000L);
-		}
-
 		private static float GetRealFrameRate(FrameRate rate, float custom)
 		{
 			switch (rate)
@@ -970,7 +960,7 @@ namespace FBXSharp
 				return null;
 			}
 
-			if (property.GetElementValue().ToString() == FBXObjectType.Mesh.ToString())
+			if (property.GetElementValue().ToString() == "Mesh")
 			{
 				var geometry = new Geometry(element, scene);
 
@@ -979,7 +969,7 @@ namespace FBXSharp
 				return geometry;
 			}
 
-			if (property.GetElementValue().ToString() == FBXObjectType.Shape.ToString())
+			if (property.GetElementValue().ToString() == "Shape")
 			{
 				return new Shape(element, scene);
 			}
@@ -1048,7 +1038,44 @@ namespace FBXSharp
 				return new LimbNode(element, scene);
 			}
 
+			if (property.GetElementValue().ToString() == "Camera")
+			{
+
+			}
+
+			if (property.GetElementValue().ToString() == "Light")
+			{
+
+			}
+
 			return new NullNode(element, scene);
+		}
+
+		private static FBXObject ParseNodeAttributeIndirect(IElement element, Scene scene)
+		{
+			if (element.Attributes.Length < 3)
+			{
+				return null;
+			}
+
+			var property = element.Attributes[2];
+
+			if (property.Type != IElementAttributeType.String)
+			{
+				return null;
+			}
+
+			if (property.GetElementValue().ToString() == "Camera")
+			{
+
+			}
+
+			if (property.GetElementValue().ToString() == "Light")
+			{
+
+			}
+
+			return new NullAttribute(element, scene);
 		}
 
 		private static void InternalPrepareGeometry(IElement element, Geometry geometry, LoadFlags flags)
@@ -1108,9 +1135,36 @@ namespace FBXSharp
 			}
 		}
 
-		private static void ParseTemplates(Element root)
+		private static IEnumerable<TemplateObject> ParseTemplates(Element root)
 		{
+			var definitions = root.FindChild("Definitions");
+			
+			if (definitions is null)
+			{
+				yield break;
+			}
 
+			for (int i = 0; i < definitions.Children.Length; ++i)
+			{
+				var child = definitions.Children[i];
+
+				if (child.Name != "ObjectType")
+				{
+					continue;
+				}
+
+				var template = child.FindChild("PropertyTemplate");
+
+				if (child.Attributes.Length == 0 || child.Attributes[0].Type != IElementAttributeType.String || template is null)
+				{
+					continue;
+				}
+
+				if (Enum.TryParse(child.Attributes[0].GetElementValue().ToString(), out FBXObjectType type))
+				{
+					yield return new TemplateObject(type, template, null);
+				}
+			}
 		}
 
 		private static IEnumerable<Connection> ParseConnections(Element root)
@@ -1250,8 +1304,8 @@ namespace FBXSharp
 						throw new Exception($"Take {i} has invalid local time to");
 					}
 
-					localFrom = FBXImporter.FBXTimeToSeconds((long)attribute1.GetElementValue());
-					localTo = FBXImporter.FBXTimeToSeconds((long)attribute2.GetElementValue());
+					localFrom = MathExtensions.FBXTimeToSeconds((long)attribute1.GetElementValue());
+					localTo = MathExtensions.FBXTimeToSeconds((long)attribute2.GetElementValue());
 				}
 
 				if (!(refTime is null) && refTime.Attributes.Length >= 2)
@@ -1269,19 +1323,17 @@ namespace FBXSharp
 						throw new Exception($"Take {i} has invalid ref time to");
 					}
 
-					refFrom = FBXImporter.FBXTimeToSeconds((long)attribute1.GetElementValue());
-					refTo = FBXImporter.FBXTimeToSeconds((long)attribute2.GetElementValue());
+					refFrom = MathExtensions.FBXTimeToSeconds((long)attribute1.GetElementValue());
+					refTo = MathExtensions.FBXTimeToSeconds((long)attribute2.GetElementValue());
 				}
 
 				yield return new TakeInfo(nameProp, filename, localFrom, localTo, refFrom, refTo);
 			}
 		}
 
-		private static Scene ParseObjects(Element root, Connection[] connections, TakeInfo[] takes, LoadFlags flags)
+		private static Scene ParseObjects(Element root, Connection[] connections, LoadFlags flags)
 		{
 			var scene = new Scene();
-
-			scene.InternalSetTakeInfos(takes);
 
 			var allObjs = root.FindChild("Objects");
 
@@ -1360,7 +1412,7 @@ namespace FBXSharp
 							break;
 
 						case FBXObjectType.NodeAttribute:
-							fObject = new NodeAttribute(pair.Value, scene);
+							fObject = FBXImporter.ParseNodeAttributeIndirect(pair.Value, scene);
 							break;
 
 						case FBXObjectType.Model:
@@ -1398,56 +1450,37 @@ namespace FBXSharp
 					continue;
 				}
 
-				switch (src.Type)
-				{
-					case FBXObjectType.NodeAttribute:
-						{
-							if (dst is NullNode node)
-							{
-								node.NodeFlags = (src as NodeAttribute).Flags;
-							}
-
-							continue;
-						}
-
-					case FBXObjectType.AnimationCurveNode:
-						{
-							break;
-						}
-
-					default:
-						{
-							break;
-						}
-				}
-
 				switch (dst.Type)
 				{
-					case FBXObjectType.NullNode:
-					case FBXObjectType.LimbNode:
 					case FBXObjectType.Root:
 						{
-							(dst as NullNode).InternalSetChild(src as NullNode);
+							if (src.Type == FBXObjectType.Model)
+							{
+								(dst as Root).InternalSetChild(src as Model);
+							}
+
 							break;
 						}
 
-					case FBXObjectType.Mesh:
+					case FBXObjectType.Model:
 						{
-							switch (src.Type)
+							var model = dst as Model;
+
+							if (src.Type == FBXObjectType.Model)
 							{
-								case FBXObjectType.Geometry:
-									(dst as Mesh).InternalSetGeometry(src as Geometry);
-									break;
-
-								case FBXObjectType.Material:
-									(dst as Mesh).InternalSetMaterial(src as Material);
-									break;
-
-								case FBXObjectType.NullNode:
-								case FBXObjectType.LimbNode:
-								case FBXObjectType.Mesh:
-									(dst as NullNode).InternalSetChild(src as NullNode);
-									break;
+								model.InternalSetChild(src as Model);
+							}
+							else if (src.Type == FBXObjectType.NodeAttribute && model.SupportsAttribute)
+							{
+								model.Attribute = src as NodeAttribute;
+							}
+							else if (src.Type == FBXObjectType.Geometry && model is Mesh geoMesh)
+							{
+								geoMesh.InternalSetGeometry(src as Geometry);
+							}
+							else if (src.Type == FBXObjectType.Material && model is Mesh matMesh)
+							{
+								matMesh.InternalSetMaterial(src as Material);
 							}
 
 							break;
@@ -1482,9 +1515,8 @@ namespace FBXSharp
 
 			foreach (var @object in objects.Values)
 			{
-				if (@object.Type != FBXObjectType.Root && @object.Type != FBXObjectType.NodeAttribute)
+				if (@object.Type != FBXObjectType.Root)
 				{
-					@object.SetNewID(@object.GetHashCode());
 					scene.InternalAddObject(@object);
 				}
 			}
@@ -1697,6 +1729,65 @@ namespace FBXSharp
 			return false;
 		}
 
+#if DEBUG
+		private static void PrintAllProperties(TemplateObject template)
+		{
+			foreach (var property in template.Properties)
+			{
+				var p1st = String.IsNullOrEmpty(property.Primary) ? "String.Empty" : $"\"{property.Primary}\"";
+				var p2nd = String.IsNullOrEmpty(property.Secondary) ? "String.Empty" : $"\"{property.Secondary}\"";
+				var name = String.IsNullOrEmpty(property.Name) ? "String.Empty" : $"\"{property.Name}\"";
+
+				var type = property.GetPropertyType().Name;
+				var flag = "IEPF.Imported";
+				var real = property.GetPropertyValue()?.ToString() ?? "null";
+
+				switch (Type.GetTypeCode(property.GetPropertyType()))
+				{
+					case TypeCode.Boolean: type = "bool"; break;
+					case TypeCode.SByte: type = "sbyte"; break;
+					case TypeCode.Byte: type = "byte"; break;
+					case TypeCode.Int16: type = "short"; break;
+					case TypeCode.UInt16: type = "ushort"; break;
+					case TypeCode.Int32: type = "int"; break;
+					case TypeCode.UInt32: type = "uint"; break;
+					case TypeCode.Int64: type = "long"; break;
+					case TypeCode.UInt64: type = "ulong"; break;
+					case TypeCode.Single: type = "float"; break;
+					case TypeCode.Double: type = "double"; break;
+					case TypeCode.String: type = "string"; break;
+				}
+
+				if ((property.Flags & IElementPropertyFlags.Animatable) != 0)
+				{
+					flag += " | IEPF.Animatable";
+				}
+
+				if ((property.Flags & IElementPropertyFlags.Animated) != 0)
+				{
+					flag += " | IEPF.Animated";
+				}
+
+				if ((property.Flags & IElementPropertyFlags.UserDefined) != 0)
+				{
+					flag += " | IEPF.UserDefined";
+				}
+
+				if ((property.Flags & IElementPropertyFlags.Hidden) != 0)
+				{
+					flag += " | IEPF.Hidden";
+				}
+
+				if ((property.Flags & IElementPropertyFlags.NotSavable) != 0)
+				{
+					flag += " | IEPF.NotSavable";
+				}
+
+				Console.WriteLine($"template.AddProperty(new FBXProperty<{type}>({p1st}, {p2nd}, {name}, {flag}, {real}));");
+			}
+		}
+#endif
+
 		public Scene Load(in LoadSettings settings)
 		{
 			using (var br = new BinaryReader(settings.Stream, Encoding.UTF8, true))
@@ -1721,10 +1812,14 @@ namespace FBXSharp
 					root = FBXImporter.TokenizeAscii();
 				}
 
+				var templates = FBXImporter.ParseTemplates(root).ToArray();
 				var connections = FBXImporter.ParseConnections(root).ToArray();
 				var takeInfos = FBXImporter.ParseTakeInfos(root).ToArray();
 
-				var result = FBXImporter.ParseObjects(root, connections, takeInfos, settings.Flags);
+				var result = FBXImporter.ParseObjects(root, connections, settings.Flags);
+
+				result.InternalSetTakeInfos(takeInfos);
+				result.InternalSetTemplates(templates);
 
 				br.BaseStream.Position = cursor.End;
 

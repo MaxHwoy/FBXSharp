@@ -1,19 +1,24 @@
 ﻿using FBXSharp.Core;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace FBXSharp.Objective
 {
-	public class Mesh : NullNode
+	public class Mesh : Model
 	{
 		private readonly List<Material> m_materials;
 		private readonly ReadOnlyCollection<Material> m_readonly;
 		private Geometry m_geometry;
 		private Pose m_pose;
 
-		public static new readonly FBXObjectType FType = FBXObjectType.Mesh;
+		public override bool SupportsAttribute => false;
 
-		public override FBXObjectType Type => Mesh.FType;
+		public override NodeAttribute Attribute
+		{
+			get => throw new NotSupportedException("Meshes do not support node attributes");
+			set => throw new NotSupportedException("Meshes do not support node attributes");
+		}
 
 		public Pose Pose => this.m_pose;
 
@@ -30,11 +35,5 @@ namespace FBXSharp.Objective
 		internal void InternalSetPose(Pose pose) => this.m_pose = pose;
 		internal void InternalSetGeometry(Geometry geometry) => this.m_geometry = geometry;
 		internal void InternalSetMaterial(Material material) => this.m_materials.Add(material);
-
-		//virtual const Pose* getPose() const = 0;
-		//virtual const Geometry* getGeometry() const = 0;
-		//virtual Matrix getGeometricMatrix() const = 0;
-		//virtual const Material* getMaterial(int idx) const = 0;
-		//virtual int getMaterialCount() const = 0;
 	}
 }

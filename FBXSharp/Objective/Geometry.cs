@@ -116,7 +116,7 @@ namespace FBXSharp.Objective
 		private readonly List<Geometry.Channel> m_channels;
 		private readonly List<Geometry.SubMesh> m_subMeshes;
 
-		public GeometryBuilder(IScene scene) : base(scene)
+		public GeometryBuilder(Scene scene) : base(scene)
 		{
 			this.m_vertices = new List<Vector3>();
 			this.m_polygons = new List<int[]>();
@@ -126,11 +126,9 @@ namespace FBXSharp.Objective
 
 		public Geometry BuildGeometry()
 		{
-			var geometry = new Geometry(null, this.m_scene)
-			{
-				Name = this.m_name,
-			};
+			var geometry = this.m_scene.CreateGeometry();
 
+			geometry.Name = this.m_name;
 			geometry.InternalSetVertices(this.m_vertices.ToArray());
 			geometry.InternalSetIndices(this.m_polygons.ToArray());
 			geometry.InternalSetSubMeshes(this.m_subMeshes.ToArray());
@@ -144,8 +142,6 @@ namespace FBXSharp.Objective
 			{
 				geometry.AddProperty(property);
 			}
-
-			geometry.SetNewID(geometry.GetHashCode());
 
 			return geometry;
 		}

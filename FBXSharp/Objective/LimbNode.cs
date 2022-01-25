@@ -1,12 +1,17 @@
 ﻿using FBXSharp.Core;
+using System;
 
 namespace FBXSharp.Objective
 {
-	public class LimbNode : NullNode
+	public class LimbNode : Model
 	{
-		public static new readonly FBXObjectType FType = FBXObjectType.LimbNode;
+		public override bool SupportsAttribute => false;
 
-		public override FBXObjectType Type => LimbNode.FType;
+		public override NodeAttribute Attribute
+		{
+			get => throw new NotSupportedException("Limb Nodes do not support node attributes");
+			set => throw new NotSupportedException("Limb Nodes do not support node attributes");
+		}
 
 		internal LimbNode(IElement element, IScene scene) : base(element, scene)
 		{

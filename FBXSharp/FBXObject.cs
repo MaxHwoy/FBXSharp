@@ -9,13 +9,12 @@ namespace FBXSharp
 	public enum FBXObjectType : int
 	{
 		Root,
+		Video,
+		Texture,
+		Material,
 		Geometry,
 		Shape,
-		Material,
-		Mesh,
-		Texture,
-		LimbNode,
-		NullNode,
+		Model,
 		NodeAttribute,
 		Cluster,
 		Skin,
@@ -27,28 +26,24 @@ namespace FBXSharp
 		AnimationCurveNode,
 		Pose,
 		Deformer,
-		Model,
-		Video,
 		GlobalSettings,
+		Template,
 	}
 
 	public abstract class FBXObject
 	{
 		private readonly List<IElementProperty> m_properties;
 		private readonly ReadOnlyCollection<IElementProperty> m_readProps;
-		private long m_id;
 
 		public abstract FBXObjectType Type { get; }
 		public IScene Scene { get; }
 
-		public long ID => this.m_id;
 		public string Name { get; set; }
 
 		public ReadOnlyCollection<IElementProperty> Properties => this.m_readProps;
 
 		internal FBXObject(IElement element, IScene scene)
 		{
-			this.m_id = 0;
 			this.Scene = scene;
 			this.m_properties = new List<IElementProperty>();
 			this.m_readProps = new ReadOnlyCollection<IElementProperty>(this.m_properties);
@@ -61,26 +56,21 @@ namespace FBXSharp
 			this.FromElement(element);
 		}
 
-		internal void SetNewID(long id) => this.m_id = id;
-
 		protected void FromElement(IElement element)
 		{
-			if (element.Attributes.Length > 0)
+			if (element.Attributes.Length > 1)
 			{
-				if (element.Attributes[0].Type == IElementAttributeType.Int64)
+				if (element.Attributes[1].Type == IElementAttributeType.String)
 				{
-					this.m_id = (long)element.Attributes[0].GetElementValue();
-				}
-
-				if (element.Attributes.Length > 1)
-				{
-					if (element.Attributes[1].Type == IElementAttributeType.String)
-					{
-						this.Name = element.Attributes[1].GetElementValue().ToString();
-					}
+					this.Name = element.Attributes[1].GetElementValue().ToString();
 				}
 			}
 
+			this.ParseProperties70(element);
+		}
+
+		protected void ParseProperties70(IElement element)
+		{
 			var properties = element.FindChild("Properties70");
 
 			if (properties is null)
@@ -219,7 +209,14 @@ namespace FBXSharp
 
 		public IElementProperty GetProperty(string name)
 		{
-			return this.m_properties.Find(_ => _.Name == name);
+			var property = this.m_properties.Find(_ => _.Name == name);
+
+			if (property is null && this.Type != FBXObjectType.Template)
+			{
+				property = this.Scene.GetTemplateObject(this.Type)?.GetProperty(name);
+			}
+
+			return property;
 		}
 
 		public void AddProperty(IElementProperty attribute)
@@ -248,97 +245,18 @@ namespace FBXSharp
 			}
 		}
 
-		public override string ToString() => $"{(String.IsNullOrEmpty(this.Name) ? this.m_id.ToString() : this.Name)} : {this.GetType().Name}";
+		public void RemoveAllProperties() => this.m_properties.Clear();
 
-		/*
-		public FObject ResolveObjectLink(int index)
-		{
-
-		}
-		public FObject ResolveObjectLink(FObjectType type, string property, int idx)
-		{
-
-		}
-		public FObject ResolveObjectLinkReverse(FObjectType type)
-		{
-
-		}
-		public FObject GetParent()
-		{
-
-		}
-
-		public RotationOrder GetRotationOrder()
-		{
-
-		}
-		public Vector3 GetRotationOffset()
-		{
-
-		}
-		public Vector3 GetRotationPivot()
-		{
-
-		}
-		public Vector3 GetPostRotation()
-		{
-
-		}
-		public Vector3 GetScalingOffset()
-		{
-
-		}
-		public Vector3 GetScalingPivot()
-		{
-
-		}
-		public Vector3 GetPreRotation()
-		{
-
-		}
-		public Vector3 GetLocalTranslation()
-		{
-
-		}
-		public Vector3 GetLocalRotation()
-		{
-
-		}
-		public Vector3 GetLocalScaling()
-		{
-
-		}
-		public Matrix4x4 GetGlobalTransform()
-		{
-
-		}
-		public Matrix4x4 GetLocalTransform()
-		{
-
-		}
-		public Matrix4x4 EvalluateLocal(Vector3 translation, Vector3 rotation)
-		{
-
-		}
-		public Matrix4x4 EvalluateLocal(Vector3 translation, Vector3 rotation, Vector3 scale)
-		{
-
-		}
-
-		public T ResolveObjectLink<T>(int index) where T : FObject
-		{
-			// some generic shenanigans?
-		}
-		*/
+		public override string ToString() => $"{(String.IsNullOrEmpty(this.Name) ? this.GetHashCode().ToString() : this.Name)} : {this.GetType().Name}";
 	}
 
 	public abstract class BuilderBase
 	{
-		protected readonly IScene m_scene;
+		protected readonly Scene m_scene;
 		protected readonly List<FBXPropertyBase> m_properties;
 		protected string m_name;
 
-		public BuilderBase(IScene scene)
+		public BuilderBase(Scene scene)
 		{
 			this.m_scene = scene;
 			this.m_properties = new List<FBXPropertyBase>();

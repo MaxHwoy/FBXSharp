@@ -12,12 +12,12 @@
 		}
 		public TimeBase(long time)
 		{
-			this.Time = (double)time / 46186158000L;
+			this.Time = MathExtensions.FBXTimeToSeconds(time);
 		}
 
 		public long ToLong()
 		{
-			return (long)(this.Time * 46186158000L);
+			return MathExtensions.SecondsToFBXTime(this.Time);
 		}
 	}
 }

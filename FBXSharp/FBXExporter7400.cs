@@ -1,5 +1,5 @@
 ﻿using FBXSharp.Core;
-using FBXSharp.Elementary;
+using FBXSharp.Objective;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,6 +33,8 @@ namespace FBXSharp
 
 		private static byte[] GetFileID(in DateTime time)
 		{
+			// https://github.com/hamish-milne/FbxWriter/blob/master/Fbx/FbxBinary.cs
+
 			var strinc = time.ToString("ssMMHHddffyyyymm");
 			
 			var result = new byte[0x10]
@@ -236,7 +238,64 @@ namespace FBXSharp
 
 		private IElement GetDefinitions()
 		{
-			return null;
+			var mapper = new Dictionary<FBXObjectType, int>();
+
+			foreach (var @object in this.m_scene.Objects)
+			{
+				if (mapper.TryGetValue(@object.Type, out var counter))
+				{
+					mapper[@object.Type] = ++counter;
+				}
+				else
+				{
+					mapper[@object.Type] = 1;
+				}
+			}
+
+			var templates = new IElement[mapper.Count + 3];
+			int tempindex = 3;
+
+			templates[0] = Element.WithAttribute("Version", ElementaryFactory.GetElementAttribute(100));
+			templates[1] = Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(this.m_scene.Objects.Count + 1));
+			templates[2] = new Element("ObjectType", new IElement[]
+			{
+				Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(1)),
+			}, new IElementAttribute[] { ElementaryFactory.GetElementAttribute(FBXObjectType.GlobalSettings.ToString()) });
+
+			foreach (var pair in mapper)
+			{
+				var attributes = new IElementAttribute[]
+				{
+					ElementaryFactory.GetElementAttribute(pair.Key.ToString()),
+				};
+
+				var template = this.m_scene.GetTemplateObject(pair.Key);
+
+				if (template is null)
+				{
+					var elements = new IElement[]
+					{
+						Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(pair.Value)),
+					};
+
+					templates[tempindex++] = new Element("ObjectType", null, attributes);
+				}
+				else
+				{
+					var elements = new IElement[]
+					{
+						Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(pair.Value)),
+						new Element("PropertyTemplate", new IElement[]
+						{
+							FBXExporter7400.GetProperties70(template.Properties),
+						}, new IElementAttribute[] { ElementaryFactory.GetElementAttribute(template.Name) }),
+					};
+
+					templates[tempindex++] = new Element("ObjectType", elements, attributes);
+				}
+			}
+
+			return new Element("Definitions", templates, null);
 		}
 
 		private IElement GetObjects()
@@ -251,7 +310,34 @@ namespace FBXSharp
 
 		private IElement GetTakes()
 		{
-			return null;
+			var elements = new IElement[this.m_scene.TakeInfos.Count + 1];
+
+			elements[0] = Element.WithAttribute("Current", ElementaryFactory.GetElementAttribute(String.Empty));
+
+			for (int i = 0; i < this.m_scene.TakeInfos.Count; ++i)
+			{
+				var takeInfo = this.m_scene.TakeInfos[i];
+
+				elements[i + 1] = new Element("Take", new IElement[]
+				{
+					new Element("FileName", null, new IElementAttribute[]
+					{
+						ElementaryFactory.GetElementAttribute(takeInfo.Filename),
+					}),
+					new Element("LocalTime", null, new IElementAttribute[]
+					{
+						ElementaryFactory.GetElementAttribute(MathExtensions.SecondsToFBXTime(takeInfo.LocalTimeFrom)),
+						ElementaryFactory.GetElementAttribute(MathExtensions.SecondsToFBXTime(takeInfo.LocalTimeTo)),
+					}),
+					new Element("ReferenceTime", null, new IElementAttribute[]
+					{
+						ElementaryFactory.GetElementAttribute(MathExtensions.SecondsToFBXTime(takeInfo.ReferenceTimeFrom)),
+						ElementaryFactory.GetElementAttribute(MathExtensions.SecondsToFBXTime(takeInfo.ReferenceTimeTo)),
+					}),
+				}, new IElementAttribute[] { ElementaryFactory.GetElementAttribute(takeInfo.Name) });
+			}
+
+			return new Element("Takes", elements, null);
 		}
 
 		public void Save(Stream stream, in Options options)

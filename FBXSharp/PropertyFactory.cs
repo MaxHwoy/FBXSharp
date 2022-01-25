@@ -300,6 +300,11 @@ namespace FBXSharp
 				return null;
 			}
 
+			if (element.Attributes.Length == 4)
+			{
+				return PropertyFactory.InternalCreateProperty<object>(element, null);
+			}
+
 			var array = new object[element.Attributes.Length - 4];
 
 			for (int i = 0, k = 4; i < array.Length; ++i, ++k)

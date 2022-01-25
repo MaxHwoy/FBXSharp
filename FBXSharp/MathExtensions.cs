@@ -153,6 +153,16 @@ namespace FBXSharp
 			return 1.0f;
 		}
 
+		public static double FBXTimeToSeconds(long value)
+		{
+			return (double)value / 46186158000L;
+		}
+
+		public static long SecondsToFBXTime(double value)
+		{
+			return (long)(value * 46186158000L);
+		}
+
 		public static int SumTo(this int[][] array, int index)
 		{
 			int count = 0;

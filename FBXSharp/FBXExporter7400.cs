@@ -31,6 +31,64 @@ namespace FBXSharp
 			this.m_scene = scene;
 		}
 
+		private static byte[] GetFileID(in DateTime time)
+		{
+			var strinc = time.ToString("ssMMHHddffyyyymm");
+			
+			var result = new byte[0x10]
+			{
+				0x58, 0xAB, 0xA9, 0xF0,
+				0x6C, 0xA2, 0xD8, 0x3F,
+				0x4D, 0x47, 0x49, 0xA3,
+				0xB4, 0xB2, 0xE7, 0x3D,
+			};
+
+			for (byte i = 0, k = 0x40; i < 0x10; ++i)
+			{
+				k = result[i] ^= (byte)(k ^ (byte)strinc[i]);
+			}
+
+			return result;
+		}
+
+		private static byte[] GetEncryption(in DateTime time)
+		{
+			var strinc = time.ToString("ssMMHHddffyyyymm");
+
+			var crypto = new byte[0x10]
+			{
+				0xE2, 0x4F, 0x7B, 0x5F,
+				0xCD, 0xE4, 0xC8, 0x6D,
+				0xDB, 0xD8, 0xFB, 0xD7,
+				0x40, 0x58, 0xC6, 0x78,
+			};
+
+			var result = new byte[0x10]
+			{
+				0x58, 0xAB, 0xA9, 0xF0,
+				0x6C, 0xA2, 0xD8, 0x3F,
+				0x4D, 0x47, 0x49, 0xA3,
+				0xB4, 0xB2, 0xE7, 0x3D,
+			};
+
+			for (byte i = 0, k = 0x40; i < 0x10; ++i)
+			{
+				k = result[i] ^= (byte)(k ^ (byte)strinc[i]);
+			}
+
+			for (byte i = 0, k = 0x40; i < 0x10; ++i)
+			{
+				k = result[i] ^= (byte)(k ^ crypto[i]);
+			}
+
+			for (byte i = 0, k = 0x40; i < 0x10; ++i)
+			{
+				k = result[i] ^= (byte)(k ^ (byte)strinc[i]);
+			}
+
+			return result;
+		}
+
 		private static IElement GetProperties70(IList<IElementProperty> properties)
 		{
 			var children = new IElement[properties.Count];
@@ -124,9 +182,9 @@ namespace FBXSharp
 			return new Element("FBXHeaderExtensions", children, null);
 		}
 
-		private IElement GetFileId()
+		private IElement GetFileId(in Options options)
 		{
-			return Element.WithAttribute("FileId", ElementaryFactory.GetElementAttribute(new byte[0x10])); // #TODO ?
+			return Element.WithAttribute("FileId", ElementaryFactory.GetElementAttribute(FBXExporter7400.GetFileID(options.SaveTime)));
 		}
 
 		private IElement GetCreationTime(in Options options)
@@ -206,7 +264,7 @@ namespace FBXSharp
 			var main = new IElement[11];
 
 			main[0] = this.GetFBXHeaderExtension(options);
-			main[1] = this.GetFileId();
+			main[1] = this.GetFileId(options);
 			main[2] = this.GetCreationTime(options);
 			main[3] = this.GetCreator(options);
 			main[4] = this.GetGlobalSettings();

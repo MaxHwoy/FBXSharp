@@ -101,6 +101,14 @@ namespace FBXSharp.Objective
 		internal void InternalSetIndices(int[][] indices) => this.m_indices = indices;
 		internal void InternalSetSubMeshes(SubMesh[] subMeshes) => this.m_subMeshes = subMeshes;
 		internal void InternalSetChannel(in Channel channel) => this.m_channels.Add(channel);
+
+		public override IElement AsElement()
+		{
+
+
+
+			return null;
+		}
 	}
 
 	public class GeometryBuilder : BuilderBase

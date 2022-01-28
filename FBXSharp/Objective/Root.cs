@@ -21,5 +21,7 @@ namespace FBXSharp.Objective
 		{
 			this.Name = "RootNode";
 		}
+
+		public override IElement AsElement() => throw new NotSupportedException("Root nodes cannot be serialized");
 	}
 }

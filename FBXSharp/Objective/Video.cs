@@ -101,5 +101,30 @@ namespace FBXSharp.Objective
 
 			// #TODO : detect mipmaps and texture type
 		}
+
+		public override IElement AsElement()
+		{
+			var attributes = new IElementAttribute[3]
+			{
+				ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
+				ElementaryFactory.GetElementAttribute(this.Name),
+				ElementaryFactory.GetElementAttribute("Clip"),
+			};
+
+			var elements = new IElement[5 + (this.m_content.Length == 0 ? 0 : 1)];
+
+			elements[0] = Element.WithAttribute("Type", ElementaryFactory.GetElementAttribute("Clip"));
+			elements[1] = this.BuildProperties70();
+			elements[2] = Element.WithAttribute("UseMipMap", ElementaryFactory.GetElementAttribute(this.m_useMipMaps ? 1 : 0));
+			elements[3] = Element.WithAttribute("Filename", ElementaryFactory.GetElementAttribute(this.m_absolute));
+			elements[4] = Element.WithAttribute("RelativeFilename", ElementaryFactory.GetElementAttribute(this.m_relative));
+
+			if (this.m_content.Length != 0)
+			{
+				elements[5] = Element.WithAttribute("Content", ElementaryFactory.GetElementAttribute(this.m_content));
+			}
+
+			return new Element("Video", elements, attributes);
+		}
 	}
 }

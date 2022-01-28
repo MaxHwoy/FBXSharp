@@ -35,5 +35,45 @@ namespace FBXSharp.Objective
 		internal void InternalSetPose(Pose pose) => this.m_pose = pose;
 		internal void InternalSetGeometry(Geometry geometry) => this.m_geometry = geometry;
 		internal void InternalSetMaterial(Material material) => this.m_materials.Add(material);
+
+		public override Connection[] GetConnections()
+		{
+			int counter = 0;
+			int indexer = 0;
+
+			counter += this.m_geometry is null ? 0 : 1;
+			counter += this.m_materials.Count;
+			counter += this.Children.Count;
+
+			if (counter == 0)
+			{
+				return Array.Empty<Connection>();
+			}
+
+			var connections = new Connection[counter];
+
+			if (!(this.m_geometry is null))
+			{
+				connections[indexer++] = new Connection(Connection.ConnectionType.Object, this.m_geometry.GetHashCode(), this.GetHashCode());
+			}
+
+			for (int i = 0; i < this.m_materials.Count; ++i)
+			{
+				connections[indexer++] = new Connection(Connection.ConnectionType.Object, this.m_materials[i].GetHashCode(), this.GetHashCode());
+			}
+
+			for (int i = 0; i < this.Children.Count; ++i)
+			{
+				connections[indexer++] = new Connection(Connection.ConnectionType.Object, this.Children[i].GetHashCode(), this.GetHashCode());
+			}
+
+			return connections;
+		}
+
+		public override IElement AsElement()
+		{
+
+			return null;
+		}
 	}
 }

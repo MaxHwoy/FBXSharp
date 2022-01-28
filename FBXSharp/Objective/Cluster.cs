@@ -31,5 +31,7 @@ namespace FBXSharp.Objective
 		//virtual Matrix getTransformMatrix() const = 0;
 		//virtual Matrix getTransformLinkMatrix() const = 0;
 		//virtual const Object* getLink() const = 0;
+
+		public override IElement AsElement() => throw new System.NotImplementedException();
 	}
 }

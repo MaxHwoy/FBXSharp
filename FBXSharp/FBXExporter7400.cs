@@ -300,12 +300,73 @@ namespace FBXSharp
 
 		private IElement GetObjects()
 		{
-			return null;
+			var elements = new IElement[this.m_scene.Objects.Count];
+
+			for (int i = 0; i < elements.Length; ++i)
+			{
+				elements[i] = this.m_scene.Objects[i].AsElement();
+			}
+
+			return new Element("Objects", elements, null);
 		}
 
 		private IElement GetConnections()
 		{
-			return null;
+			var connections = new List<Connection>(this.m_scene.Root.GetConnections());
+
+			foreach (var @object in this.m_scene.Objects)
+			{
+				connections.AddRange(@object.GetConnections());
+			}
+
+			var elements = new IElement[connections.Count];
+
+			for (int i = 0; i < elements.Length; ++i)
+			{
+				var connection = connections[i];
+
+				switch (connection.Type)
+				{
+					case Connection.ConnectionType.Object:
+						{
+							elements[i] = new Element("C", null, new IElementAttribute[]
+							{
+								ElementaryFactory.GetElementAttribute("OO"),
+								ElementaryFactory.GetElementAttribute(connection.Source),
+								ElementaryFactory.GetElementAttribute(connection.Destination),
+							});
+
+							break;
+						}
+
+					case Connection.ConnectionType.Property:
+						{
+							elements[i] = new Element("C", null, new IElementAttribute[]
+							{
+								ElementaryFactory.GetElementAttribute("OP"),
+								ElementaryFactory.GetElementAttribute(connection.Source),
+								ElementaryFactory.GetElementAttribute(connection.Destination),
+								connection.Property,
+							});
+
+							break;
+						}
+
+					default:
+						{
+							elements[i] = new Element("C", null, new IElementAttribute[]
+							{
+								ElementaryFactory.GetElementAttribute(String.Empty),
+								ElementaryFactory.GetElementAttribute(connection.Source),
+								ElementaryFactory.GetElementAttribute(connection.Destination),
+							});
+
+							break;
+						}
+				}
+			}
+
+			return new Element("Connections", elements, null);
 		}
 
 		private IElement GetTakes()

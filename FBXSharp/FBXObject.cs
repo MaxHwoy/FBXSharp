@@ -89,9 +89,49 @@ namespace FBXSharp
 			}
 		}
 
+		protected IElement BuildProperties70()
+		{
+			var children = new IElement[this.m_properties.Count];
+
+			for (int i = 0; i < children.Length; ++i)
+			{
+				children[i] = PropertyFactory.AsElement(this.m_properties[i]);
+			}
+
+			return new Element("Properties70", children, null);
+		}
+
+		protected bool InternalGetEnumType<T>(string name, out T value) where T : Enum
+		{
+			var enumeration = this.InternalGetEnumeration(name);
+
+			if (enumeration is null)
+			{
+				value = default;
+				return false;
+			}
+			else
+			{
+				value = (T)Enum.ToObject(typeof(T), enumeration.Value);
+				return true;
+			}
+		}
+
+		protected void InternalSetEnumType(string name, bool useValue, int value, string primary, string secondary)
+		{
+			if (useValue)
+			{
+				this.InternalSetEnumeration(name, new Enumeration(value), primary, secondary);
+			}
+			else
+			{
+				this.InternalSetEnumeration(name, null, primary, secondary);
+			}
+		}
+
 		protected Enumeration InternalGetEnumeration(string name)
 		{
-			var attribute = this.GetProperty(name);
+			var attribute = this.GetProperty(name, true);
 
 			if (attribute is null || attribute.Type != IElementPropertyType.Enum)
 			{
@@ -103,7 +143,7 @@ namespace FBXSharp
 
 		protected void InternalSetEnumeration(string name, Enumeration value, string primary, string secondary)
 		{
-			var attribute = this.GetProperty(name);
+			var attribute = this.GetProperty(name, false);
 
 			if (attribute is null)
 			{
@@ -127,7 +167,7 @@ namespace FBXSharp
 
 		protected ColorRGB? InternalGetColor(string name)
 		{
-			var attribute = this.GetProperty(name);
+			var attribute = this.GetProperty(name, true);
 
 			if (attribute is null)
 			{
@@ -149,7 +189,7 @@ namespace FBXSharp
 
 		protected void InternalSetColor(string name, ColorRGB? value, string primary, string secondary, IElementPropertyFlags flags)
 		{
-			var attribute = this.GetProperty(name);
+			var attribute = this.GetProperty(name, false);
 
 			if (attribute is null)
 			{
@@ -173,7 +213,7 @@ namespace FBXSharp
 
 		protected T? InternalGetPrimitive<T>(string name, IElementPropertyType type) where T : struct
 		{
-			var attribute = this.GetProperty(name);
+			var attribute = this.GetProperty(name, true);
 
 			if (attribute is null || attribute.Type != type)
 			{
@@ -185,7 +225,7 @@ namespace FBXSharp
 
 		protected void InternalSetPrimitive<T>(string name, IElementPropertyType type, T? value, string primary, string secondary, IElementPropertyFlags flags = IElementPropertyFlags.None) where T : struct
 		{
-			var attribute = this.GetProperty(name);
+			var attribute = this.GetProperty(name, false);
 
 			if (attribute is null)
 			{
@@ -207,13 +247,13 @@ namespace FBXSharp
 			}
 		}
 
-		public IElementProperty GetProperty(string name)
+		public IElementProperty GetProperty(string name, bool checkTemplate = true)
 		{
 			var property = this.m_properties.Find(_ => _.Name == name);
 
-			if (property is null && this.Type != FBXObjectType.Template)
+			if (checkTemplate && property is null && this.Type != FBXObjectType.Template)
 			{
-				property = this.Scene.GetTemplateObject(this.Type)?.GetProperty(name);
+				property = this.Scene.GetTemplateObject(this.Type)?.GetProperty(name, false);
 			}
 
 			return property;
@@ -245,7 +285,16 @@ namespace FBXSharp
 			}
 		}
 
+		public void RemoveProperty(string name)
+		{
+			this.RemoveProperty(this.m_properties.FindIndex(_ => _.Name == name));
+		}
+
 		public void RemoveAllProperties() => this.m_properties.Clear();
+
+		public virtual Connection[] GetConnections() => Array.Empty<Connection>();
+
+		public abstract IElement AsElement();
 
 		public override string ToString() => $"{(String.IsNullOrEmpty(this.Name) ? this.GetHashCode().ToString() : this.Name)} : {this.GetType().Name}";
 	}

@@ -12,7 +12,6 @@ namespace FBXSharp.Objective
 		{
 		}
 
-		//virtual int getBlendShapeChannelCount() const = 0;
-		//virtual const BlendShapeChannel* getBlendShapeChannel(int idx) const = 0;
+		public override IElement AsElement() => throw new System.NotImplementedException();
 	}
 }

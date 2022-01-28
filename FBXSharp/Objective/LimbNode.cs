@@ -16,5 +16,7 @@ namespace FBXSharp.Objective
 		internal LimbNode(IElement element, IScene scene) : base(element, scene)
 		{
 		}
+
+		public override IElement AsElement() => throw new NotImplementedException();
 	}
 }

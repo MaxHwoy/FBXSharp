@@ -12,6 +12,6 @@ namespace FBXSharp.Objective
 		{
 		}
 
-		//virtual const AnimationLayer* getLayer(int index) const = 0;
+		public override IElement AsElement() => throw new System.NotImplementedException();
 	}
 }

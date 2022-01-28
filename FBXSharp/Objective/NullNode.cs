@@ -30,6 +30,12 @@ namespace FBXSharp.Objective
 				throw new ArgumentException("Node Attribute passed should be of NullAttribute type");
 			}
 		}
+
+		public override IElement AsElement()
+		{
+
+			return null;
+		}
 	}
 
 	public class NullAttribute : NodeAttribute
@@ -52,6 +58,13 @@ namespace FBXSharp.Objective
 			{
 				this.Flags = flags.Attributes[0].GetElementValue().ToString();
 			}
+		}
+
+		public override IElement AsElement()
+		{
+
+
+			return null;
 		}
 	}
 }

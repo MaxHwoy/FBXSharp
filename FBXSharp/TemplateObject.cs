@@ -45,5 +45,7 @@ namespace FBXSharp
 				this.AddProperty(property);
 			}
 		}
+
+		public override IElement AsElement() => throw new NotSupportedException("Templates cannot be serialized");
 	}
 }

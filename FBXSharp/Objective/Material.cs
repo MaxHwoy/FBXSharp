@@ -142,6 +142,46 @@ namespace FBXSharp.Objective
 		}
 
 		internal void InternalSetChannel(in Channel channel) => this.m_channels.Add(channel);
+
+		public override Connection[] GetConnections()
+		{
+			if (this.m_channels.Count == 0)
+			{
+				return Array.Empty<Connection>();
+			}
+
+			var connections = new Connection[this.m_channels.Count];
+
+			for (int i = 0; i < connections.Length; ++i)
+			{
+				connections[i] = new Connection
+				(
+					Connection.ConnectionType.Property,
+					this.m_channels[i].Texture.GetHashCode(),
+					this.GetHashCode(),
+					ElementaryFactory.GetElementAttribute(this.m_channels[i].Name)
+				);
+			}
+
+			return connections;
+		}
+
+		public override IElement AsElement()
+		{
+			var attributes = new IElementAttribute[3]
+			{
+				ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
+				ElementaryFactory.GetElementAttribute(this.Name),
+				ElementaryFactory.GetElementAttribute(String.Empty),
+			};
+
+			var elements = new IElement[5];
+
+			elements[0] = Element.WithAttribute("Version", ElementaryFactory.GetElementAttribute(102));
+
+
+			return null;
+		}
 	}
 
 	public class MaterialBuilder : BuilderBase

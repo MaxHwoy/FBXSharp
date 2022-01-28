@@ -179,7 +179,6 @@ namespace FBXSharp
 			template.AddProperty(new FBXProperty<Enumeration>("enum", String.Empty, "TextureTypeUse", IEPF.Imported, new Enumeration()));
 			template.AddProperty(new FBXProperty<Enumeration>("enum", String.Empty, "AlphaSource", IEPF.Imported, new Enumeration(2)));
 			template.AddProperty(new FBXProperty<double>("Number", String.Empty, "Texture alpha", IEPF.Imported | IEPF.Animatable, 1.0));
-			template.AddProperty(new FBXProperty<bool>("bool", String.Empty, "PremultiplyAlpha", IEPF.Imported, true));
 			template.AddProperty(new FBXProperty<Enumeration>("enum", String.Empty, "CurrentMappingType", IEPF.Imported, new Enumeration()));
 			template.AddProperty(new FBXProperty<Enumeration>("enum", String.Empty, "WrapModeU", IEPF.Imported, new Enumeration()));
 			template.AddProperty(new FBXProperty<Enumeration>("enum", String.Empty, "WrapModeV", IEPF.Imported, new Enumeration()));

@@ -195,6 +195,39 @@ namespace FBXSharp.Objective
 				return this.Parent.GetGlobalTransform() * this.EvaluateLocal(this.LocalTranslation.GetValueOrDefault(), this.LocalRotation.GetValueOrDefault());
 			}
 		}
+
+		public override Connection[] GetConnections()
+		{
+			if (this.m_children.Count == 0)
+			{
+				if (!this.SupportsAttribute || this.Attribute is null)
+				{
+					return Array.Empty<Connection>();
+				}
+				else
+				{
+					return new Connection[1]
+					{
+						new Connection(Connection.ConnectionType.Object, this.Attribute.GetHashCode(), this.GetHashCode()),
+					};
+				}
+			}
+
+			var attributeOn = this.SupportsAttribute && !(this.Attribute is null);
+			var connections = new Connection[this.m_children.Count + (attributeOn ? 1 : 0)];
+
+			for (int i = 0; i < connections.Length; ++i)
+			{
+				connections[i] = new Connection(Connection.ConnectionType.Object, this.m_children[i].GetHashCode(), this.GetHashCode());
+			}
+
+			if (attributeOn)
+			{
+				connections[this.m_children.Count] = new Connection(Connection.ConnectionType.Object, this.Attribute.GetHashCode(), this.GetHashCode());
+			}
+
+			return connections;
+		}
 	}
 
 	public abstract class NodeAttribute : FBXObject

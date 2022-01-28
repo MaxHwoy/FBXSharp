@@ -12,7 +12,6 @@ namespace FBXSharp.Objective
 		{
 		}
 
-		//virtual const AnimationCurveNode* getCurveNode(int index) const = 0;
-		//virtual const AnimationCurveNode* getCurveNode(const Object& bone, const char* property) const = 0;
+		public override IElement AsElement() => throw new System.NotImplementedException();
 	}
 }

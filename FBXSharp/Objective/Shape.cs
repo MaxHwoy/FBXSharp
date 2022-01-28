@@ -15,5 +15,7 @@ namespace FBXSharp.Objective
 		//virtual const Vec3* getVertices() const = 0;
 		//virtual int getVertexCount() const = 0;
 		//virtual const Vec3* getNormals() const = 0;
+
+		public override IElement AsElement() => throw new System.NotImplementedException();
 	}
 }

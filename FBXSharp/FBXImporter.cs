@@ -1206,6 +1206,11 @@ namespace FBXSharp
 
 				switch (first.GetElementValue().ToString())
 				{
+					case "":
+						{
+							break;
+						}
+
 					case "OO":
 						{
 							yield return new Connection(Connection.ConnectionType.Object, start, final);

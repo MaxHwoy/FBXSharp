@@ -12,8 +12,6 @@ namespace FBXSharp.Objective
 		{
 		}
 
-		//virtual double getDeformPercent() const = 0;
-		//virtual int getShapeCount() const = 0;
-		//virtual const struct Shape* getShape(int idx) const = 0;
+		public override IElement AsElement() => throw new System.NotImplementedException();
 	}
 }

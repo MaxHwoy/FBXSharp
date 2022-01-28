@@ -49,5 +49,7 @@ namespace FBXSharp.Objective
 				throw new Exception($"Invalid animation curve with name {this.Name}");
 			}
 		}
+
+		public override IElement AsElement() => throw new NotImplementedException();
 	}
 }

@@ -1590,8 +1590,8 @@ namespace FBXSharp
 
 			switch (etype)
 			{
-				case IElementAttributeType.Boolean:
-					return new BooleanAttribute(cursor.Reader.ReadBoolean());
+				case IElementAttributeType.Byte:
+					return new ByteAttribute(cursor.Reader.ReadByte());
 
 				case IElementAttributeType.Int16:
 					return new Int16Attribute(cursor.Reader.ReadInt16());

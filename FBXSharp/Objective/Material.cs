@@ -175,12 +175,14 @@ namespace FBXSharp.Objective
 				ElementaryFactory.GetElementAttribute(String.Empty),
 			};
 
-			var elements = new IElement[5];
+			var elements = new IElement[4];
 
 			elements[0] = Element.WithAttribute("Version", ElementaryFactory.GetElementAttribute(102));
+			elements[1] = Element.WithAttribute("ShadingModel", ElementaryFactory.GetElementAttribute(this.m_shadingModel));
+			elements[2] = Element.WithAttribute("MultiLayer", ElementaryFactory.GetElementAttribute(this.MultiLayer ? 1 : 0));
+			elements[3] = this.BuildProperties70();
 
-
-			return null;
+			return new Element("Material", elements, attributes);
 		}
 	}
 

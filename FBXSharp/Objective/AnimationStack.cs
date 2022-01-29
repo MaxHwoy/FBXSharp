@@ -12,6 +12,9 @@ namespace FBXSharp.Objective
 		{
 		}
 
-		public override IElement AsElement() => throw new System.NotImplementedException();
+		public override IElement AsElement()
+		{
+			return null; // #TODO
+		}
 	}
 }

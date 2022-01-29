@@ -71,7 +71,7 @@ namespace FBXSharp
 		{
 			switch (attribute.Type)
 			{
-				case IElementAttributeType.Boolean:
+				case IElementAttributeType.Byte:
 				case IElementAttributeType.Int16:
 				case IElementAttributeType.Int32:
 				case IElementAttributeType.Int64:
@@ -100,7 +100,7 @@ namespace FBXSharp
 		{
 			switch (attribute.Type)
 			{
-				case IElementAttributeType.Boolean:
+				case IElementAttributeType.Byte:
 				case IElementAttributeType.Int16:
 				case IElementAttributeType.Int32:
 				case IElementAttributeType.Int64:
@@ -489,17 +489,17 @@ namespace FBXSharp
 
 		public static IElementAttribute GetElementAttribute(bool value)
 		{
-			return new BooleanAttribute(value);
+			return new Int32Attribute(value ? 1 : 0);
 		}
 		
 		public static IElementAttribute GetElementAttribute(byte value)
 		{
-			return new Int16Attribute(value);
+			return new ByteAttribute(value);
 		}
 		
 		public static IElementAttribute GetElementAttribute(sbyte value)
 		{
-			return new Int16Attribute(value);
+			return new ByteAttribute((byte)value);
 		}
 		
 		public static IElementAttribute GetElementAttribute(char value)

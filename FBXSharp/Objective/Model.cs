@@ -8,6 +8,23 @@ namespace FBXSharp.Objective
 {
 	public abstract class Model : FBXObject
 	{
+		public enum ShadingType
+		{
+			HardShading,
+			WireFrame,
+			FlatShading,
+			LightShading,
+			TextureShading,
+			FullShading,
+		}
+
+		public enum CullingType
+		{
+			CullingOff,
+			CullingOnCCW,
+			CullingOnCW,
+		}
+
 		private readonly List<Model> m_children;
 		private readonly ReadOnlyCollection<Model> m_readonly;
 		private Model m_parent;
@@ -24,16 +41,10 @@ namespace FBXSharp.Objective
 
 		public ReadOnlyCollection<Model> Children => this.m_readonly;
 
-		public int MultiLayer { get; set; } = 0;
+		public ShadingType Shading { get; set; }
 
-		public int MultiTake { get; set; } = 0;
-
-		public bool Shading { get; set; } = true;
-
-		public string Culling { get; set; } = "CullingOff";
-
-		public string NodeFlags { get; set; }
-		
+		public CullingType Culling { get; set; }
+				
 		public Enumeration RotationOrder
 		{
 			get => this.InternalGetEnumeration(nameof(this.RotationOrder));
@@ -108,29 +119,30 @@ namespace FBXSharp.Objective
 				return;
 			}
 
-			var multiLayer = element.FindChild(nameof(this.MultiLayer));
-			var multiTake = element.FindChild(nameof(this.MultiTake));
 			var shading = element.FindChild(nameof(this.Shading));
 			var culling = element.FindChild(nameof(this.Culling));
 
-			if (!(multiLayer is null) && multiLayer.Attributes.Length > 0)
-			{
-				this.MultiLayer = Convert.ToInt32(multiLayer.Attributes[0].GetElementValue());
-			}
-
-			if (!(multiTake is null) && multiTake.Attributes.Length > 0)
-			{
-				this.MultiTake = Convert.ToInt32(multiTake.Attributes[0].GetElementValue());
-			}
-
 			if (!(shading is null) && shading.Attributes.Length > 0)
 			{
-				this.Shading = Convert.ToBoolean(shading.Attributes[0].GetElementValue());
+				var type = (char)Convert.ToByte(shading.Attributes[0].GetElementValue());
+
+				switch (type)
+				{
+					case 'W': this.Shading = ShadingType.WireFrame; break;
+					case 'F': this.Shading = ShadingType.FlatShading; break;
+					case 'Y': this.Shading = ShadingType.LightShading; break;
+					case 'T': this.Shading = ShadingType.TextureShading; break;
+					case 'U': this.Shading = ShadingType.FullShading; break;
+					default: this.Shading = ShadingType.HardShading; break;
+				}
 			}
 
 			if (!(culling is null) && culling.Attributes.Length > 0)
 			{
-				this.Culling = culling.Attributes[0].GetElementValue().ToString();
+				if (Enum.TryParse(culling.Attributes[0].GetElementValue().ToString(), out CullingType type))
+				{
+					this.Culling = type;
+				}
 			}
 		}
 
@@ -173,6 +185,38 @@ namespace FBXSharp.Objective
 			var spii = Matrix4x4.CreateTranslation(-scalingPivot);
 
 			return t * roff * rpip * rpre * r * post * rpii * soff * spip * s * spii;
+		}
+
+		protected IElement MakeElement(string type)
+		{
+			var attributes = new IElementAttribute[3]
+			{
+				ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
+				ElementaryFactory.GetElementAttribute(this.Name),
+				ElementaryFactory.GetElementAttribute(type),
+			};
+
+			var elements = new IElement[6];
+
+			byte shading = 0;
+
+			switch (this.Shading)
+			{
+				case ShadingType.WireFrame: shading = (byte)'W'; break;
+				case ShadingType.FlatShading: shading = (byte)'F'; break;
+				case ShadingType.LightShading: shading = (byte)'Y'; break;
+				case ShadingType.TextureShading: shading = (byte)'T'; break;
+				case ShadingType.FullShading: shading = (byte)'U'; break;
+			}
+
+			elements[0] = Element.WithAttribute("Version", ElementaryFactory.GetElementAttribute(232));
+			elements[1] = this.BuildProperties70();
+			elements[2] = Element.WithAttribute("MultiLayer", ElementaryFactory.GetElementAttribute(false));
+			elements[3] = Element.WithAttribute("MultiTake", ElementaryFactory.GetElementAttribute(0));
+			elements[4] = Element.WithAttribute("Shading", ElementaryFactory.GetElementAttribute(shading));
+			elements[5] = Element.WithAttribute("Culling", ElementaryFactory.GetElementAttribute(this.Culling.ToString()));
+
+			return new Element("Model", elements, attributes);
 		}
 
 		public Matrix4x4 GetLocalTransform()

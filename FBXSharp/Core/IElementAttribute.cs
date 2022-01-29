@@ -2,7 +2,7 @@
 {
 	public enum IElementAttributeType : byte
 	{
-		Boolean = (byte)'C',
+		Byte = (byte)'C',
 		Int16 = (byte)'Y',
 		Int32 = (byte)'I',
 		Int64 = (byte)'L',

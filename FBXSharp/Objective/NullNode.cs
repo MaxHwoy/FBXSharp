@@ -33,38 +33,24 @@ namespace FBXSharp.Objective
 
 		public override IElement AsElement()
 		{
-
-			return null;
+			return this.MakeElement("Null");
 		}
 	}
 
 	public class NullAttribute : NodeAttribute
 	{
-		private string m_flags;
-
-		public string Flags
-		{
-			get => this.m_flags;
-			set => this.m_flags = String.IsNullOrWhiteSpace(value) ? "Null" : value;
-		}
-
 		internal NullAttribute(IElement element, IScene scene) : base(element, scene)
 		{
-			this.m_flags = "Null";
-
-			var flags = element.FindChild("TypeFlags");
-
-			if (!(flags is null) && flags.Attributes.Length > 0)
-			{
-				this.Flags = flags.Attributes[0].GetElementValue().ToString();
-			}
 		}
 
 		public override IElement AsElement()
 		{
+			var elements = new IElement[2];
 
+			elements[0] = Element.WithAttribute("TypeFlags", ElementaryFactory.GetElementAttribute("Null"));
+			elements[1] = this.BuildProperties70();
 
-			return null;
+			return new Element("NodeAttribute", elements, this.BuildAttributes("Null"));
 		}
 	}
 }

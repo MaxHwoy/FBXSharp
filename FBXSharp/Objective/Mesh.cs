@@ -72,7 +72,7 @@ namespace FBXSharp.Objective
 
 		public override IElement AsElement()
 		{
-			return this.MakeElement(nameof(Mesh));
+			return this.MakeElement("Mesh");
 		}
 	}
 }

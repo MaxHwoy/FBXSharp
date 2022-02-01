@@ -15,6 +15,8 @@ namespace FBXSharp.Elementary
 
 		public IElementAttributeType Type => BinaryAttribute.PropertyType;
 
+		public int Size => 4 + BinaryAttribute.PropertyStride * this.Length;
+
 		public int Stride => BinaryAttribute.PropertyStride;
 
 		public int Length { get; }

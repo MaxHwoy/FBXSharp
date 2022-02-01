@@ -162,11 +162,12 @@ namespace FBXSharp
 		{
 			var sb = new StringBuilder(maxSize);
 			long current = br.BaseStream.Position;
-			byte value;
+			//byte value;
 
-			for (int i = 0; i < maxSize && (value = br.ReadByte()) != 0; ++i)
+			for (int i = 0; i < maxSize /* && (value = br.ReadByte()) != 0 */; ++i)
 			{
-				_ = sb.Append((char)value);
+				//_ = sb.Append((char)value);
+				_ = sb.Append((char)br.ReadByte());
 			}
 
 			if (alignToEnd)

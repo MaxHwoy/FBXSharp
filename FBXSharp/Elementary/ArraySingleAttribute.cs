@@ -15,6 +15,8 @@ namespace FBXSharp.Elementary
 
 		public IElementAttributeType Type => ArraySingleAttribute.PropertyType;
 
+		public int Size => 12 + ArraySingleAttribute.PropertyStride * this.Length;
+
 		public int Stride => ArraySingleAttribute.PropertyStride;
 
 		public int Length { get; }

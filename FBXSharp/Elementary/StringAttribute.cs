@@ -15,6 +15,8 @@ namespace FBXSharp.Elementary
 
 		public IElementAttributeType Type => StringAttribute.PropertyType;
 
+		public int Size => 4 + this.Stride;
+
 		public int Stride { get; }
 
 		public int Length => StringAttribute.PropertyLength;
@@ -25,7 +27,7 @@ namespace FBXSharp.Elementary
 		{
 			// 4 bytes char count + string length
 			this.Value = value ?? String.Empty;
-			this.Stride = this.Value.Length + 4;
+			this.Stride = this.Value.Length;
 		}
 
 		public object GetElementValue() => this.Value;

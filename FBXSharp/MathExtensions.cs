@@ -187,5 +187,12 @@ namespace FBXSharp
 
 			return builder.ToString();
 		}
+
+		public static string Substring(this string str, string splitter)
+		{
+			var index = str.IndexOf(splitter);
+
+			return index < 0 ? str : str.Substring(0, index);
+		}
 	}
 }

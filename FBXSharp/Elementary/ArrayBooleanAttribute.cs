@@ -15,6 +15,8 @@ namespace FBXSharp.Elementary
 
 		public IElementAttributeType Type => ArrayBooleanAttribute.PropertyType;
 
+		public int Size => 12 + ArrayBooleanAttribute.PropertyStride * this.Length;
+
 		public int Stride => ArrayBooleanAttribute.PropertyStride;
 
 		public int Length { get; }

@@ -22,6 +22,7 @@
 		IElementAttributeType Type { get; }
 		int Stride { get; }
 		int Length { get; }
+		int Size { get; }
 
 		object GetElementValue();
 	}

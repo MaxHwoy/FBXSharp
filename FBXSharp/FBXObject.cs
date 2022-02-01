@@ -62,7 +62,7 @@ namespace FBXSharp
 			{
 				if (element.Attributes[1].Type == IElementAttributeType.String)
 				{
-					this.Name = element.Attributes[1].GetElementValue().ToString();
+					this.Name = element.Attributes[1].GetElementValue().ToString().Substring("::").Substring("\x00\x01");
 				}
 			}
 
@@ -87,6 +87,16 @@ namespace FBXSharp
 					this.AddProperty(PropertyFactory.AsElementProperty(property));
 				}
 			}
+		}
+
+		protected IElementAttribute[] BuildAttributes(string type)
+		{
+			return new IElementAttribute[3]
+			{
+				ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
+				ElementaryFactory.GetElementAttribute($"{this.Name}::{this.Type}"),
+				ElementaryFactory.GetElementAttribute(type),
+			};
 		}
 
 		protected IElement BuildProperties70()

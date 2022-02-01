@@ -221,13 +221,6 @@ namespace FBXSharp.Objective
 
 		public override IElement AsElement()
 		{
-			var attributes = new IElementAttribute[3]
-			{
-				ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
-				ElementaryFactory.GetElementAttribute(this.Name),
-				ElementaryFactory.GetElementAttribute(String.Empty),
-			};
-
 			int index = 0;
 			int count = 7 +
 				(this.UVTranslation.HasValue ? 1 : 0) +
@@ -239,8 +232,8 @@ namespace FBXSharp.Objective
 
 			elements[index++] = Element.WithAttribute("Type", ElementaryFactory.GetElementAttribute("TextureVideoClip"));
 			elements[index++] = Element.WithAttribute("Version", ElementaryFactory.GetElementAttribute(202));
-			elements[index++] = this.BuildProperties70();
 			elements[index++] = Element.WithAttribute("TextureName", ElementaryFactory.GetElementAttribute(this.m_textureName));
+			elements[index++] = this.BuildProperties70();
 			elements[index++] = Element.WithAttribute("Media", ElementaryFactory.GetElementAttribute(this.m_media));
 			elements[index++] = Element.WithAttribute("FileName", ElementaryFactory.GetElementAttribute(this.m_absolute));
 			elements[index++] = Element.WithAttribute("RelativeFilename", ElementaryFactory.GetElementAttribute(this.m_relative));
@@ -282,7 +275,7 @@ namespace FBXSharp.Objective
 				});
 			}
 
-			return new Element("Texture", elements, attributes);
+			return new Element("Texture", elements, this.BuildAttributes(String.Empty));
 		}
 	}
 }

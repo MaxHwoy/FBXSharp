@@ -168,13 +168,6 @@ namespace FBXSharp.Objective
 
 		public override IElement AsElement()
 		{
-			var attributes = new IElementAttribute[3]
-			{
-				ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
-				ElementaryFactory.GetElementAttribute(this.Name),
-				ElementaryFactory.GetElementAttribute(String.Empty),
-			};
-
 			var elements = new IElement[4];
 
 			elements[0] = Element.WithAttribute("Version", ElementaryFactory.GetElementAttribute(102));
@@ -182,7 +175,7 @@ namespace FBXSharp.Objective
 			elements[2] = Element.WithAttribute("MultiLayer", ElementaryFactory.GetElementAttribute(this.MultiLayer ? 1 : 0));
 			elements[3] = this.BuildProperties70();
 
-			return new Element("Material", elements, attributes);
+			return new Element("Material", elements, this.BuildAttributes(String.Empty));
 		}
 	}
 

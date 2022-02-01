@@ -7,7 +7,7 @@ namespace FBXSharp
 {
 	internal static class ElementaryFactory
 	{
-		private static S[] DeepGenericCopy<T, S>(T[] buffer)
+		public static S[] DeepGenericCopy<T, S>(T[] buffer)
 		{
 			var array = new S[buffer.Length];
 
@@ -65,6 +65,30 @@ namespace FBXSharp
 			}
 
 			return array;
+		}
+
+		public static double[] VtoDArray<TFrom, TTo>(TFrom[] from)
+			where TFrom : unmanaged
+			where TTo : unmanaged
+		{
+			unsafe
+			{
+				var length = sizeof(TTo) / sizeof(double) * from.Length;
+				var buffer = new double[length];
+
+				fixed (TFrom* frmPtr = &from[0])
+				fixed (double* toPtr = &buffer[0])
+				{
+					var ptr = (TTo*)toPtr;
+
+					for (int i = 0; i < from.Length; ++i)
+					{
+						*(ptr + i) = *(TTo*)(frmPtr + i);
+					}
+				}
+
+				return buffer;
+			}
 		}
 
 		public static bool ToInt32(IElementAttribute attribute, out int value)

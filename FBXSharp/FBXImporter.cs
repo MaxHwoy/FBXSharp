@@ -181,7 +181,7 @@ namespace FBXSharp
 
 				indexer = new int[totalCounter / 3][];
 				remapped = new int[totalCounter];
-				reindexed = new int[indexer.Length]; // #TODO
+				reindexed = new int[indexer.Length];
 
 				totalCounter = 0;
 				inPolygonIdx = 0;
@@ -495,6 +495,7 @@ namespace FBXSharp
 			}
 
 			var layer = Convert.ToInt32(builder.Element.Attributes[0].GetElementValue());
+			var naming = builder.Element.FindChild("Name");
 			var mapping = builder.Element.FindChild("MappingInformationType");
 			var reference = builder.Element.FindChild("ReferenceInformationType");
 
@@ -805,9 +806,16 @@ namespace FBXSharp
 
 			void FinalizeChannel(in ChannelBuilder<TRead, TRes> channel, TRead[] input, double[] weights)
 			{
+				var name = String.Empty;
+
+				if (!(naming is null) && naming.Attributes.Length > 0 && naming.Attributes[0].Type == IElementAttributeType.String)
+				{
+					name = naming.Attributes[0].GetElementValue().ToString();
+				}
+
 				if (!channel.DoExtended)
 				{
-					channel.Target.InternalSetChannel(new Geometry.Channel(layer, channel.Type, channel.Size, input));
+					channel.Target.InternalSetChannel(new Geometry.Channel(layer, name, channel.Type, channel.Size, input));
 				}
 				else
 				{
@@ -828,7 +836,7 @@ namespace FBXSharp
 						}
 					}
 
-					channel.Target.InternalSetChannel(new Geometry.Channel(layer, channel.Type, channel.Size, expand));
+					channel.Target.InternalSetChannel(new Geometry.Channel(layer, name, channel.Type, channel.Size, expand));
 				}
 			}
 		}
@@ -1040,12 +1048,12 @@ namespace FBXSharp
 
 			if (property.GetElementValue().ToString() == "Camera")
 			{
-
+				return new Camera(element, scene);
 			}
 
 			if (property.GetElementValue().ToString() == "Light")
 			{
-
+				return new Light(element, scene);
 			}
 
 			return new NullNode(element, scene);
@@ -1067,12 +1075,12 @@ namespace FBXSharp
 
 			if (property.GetElementValue().ToString() == "Camera")
 			{
-
+				return new CameraAttribute(element, scene);
 			}
 
 			if (property.GetElementValue().ToString() == "Light")
 			{
-
+				return new LightAttribute(element, scene);
 			}
 
 			return new NullAttribute(element, scene);
@@ -1128,6 +1136,8 @@ namespace FBXSharp
 					default: break;
 				}
 			}
+
+			geometry.InternalSortChannels();
 
 			if ((flags & LoadFlags.RemapSubmeshes) != 0 && geometry.SubMeshes.Length > 1)
 			{

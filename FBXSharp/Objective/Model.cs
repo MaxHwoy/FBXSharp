@@ -25,6 +25,13 @@ namespace FBXSharp.Objective
 			CullingOnCW,
 		}
 
+		public enum InheritanceType
+		{
+			InheritRrSs,
+			InheritRSrs,
+			InheritRrs
+		};
+
 		private readonly List<Model> m_children;
 		private readonly ReadOnlyCollection<Model> m_readonly;
 		private Model m_parent;
@@ -103,6 +110,30 @@ namespace FBXSharp.Objective
 		{
 			get => this.InternalGetPrimitive<Vector3>("Lcl Scaling", IElementPropertyType.Double3);
 			set => this.InternalSetPrimitive<Vector3>("Lcl Scaling", IElementPropertyType.Double3, value, "Lcl Scaling", "Lcl Scaling", IElementPropertyFlags.Animatable);
+		}
+
+		public double? Visibility
+		{
+			get => this.InternalGetPrimitive<double>(nameof(this.Visibility), IElementPropertyType.Double);
+			set => this.InternalSetPrimitive<double>(nameof(this.Visibility), IElementPropertyType.Double, value, "Visibility", String.Empty, IElementPropertyFlags.Animatable);
+		}
+
+		public bool? VisibilityInheritance
+		{
+			get => this.InternalGetPrimitive<bool>("Visibility Inheritance", IElementPropertyType.Bool);
+			set => this.InternalSetPrimitive<bool>("Visibility Inheritance", IElementPropertyType.Bool, value, "Visibility Inheritance", String.Empty);
+		}
+
+		public int? DefaultAttributeIndex
+		{
+			get => this.InternalGetPrimitive<int>(nameof(this.DefaultAttributeIndex), IElementPropertyType.Int);
+			set => this.InternalSetPrimitive<int>(nameof(this.DefaultAttributeIndex), IElementPropertyType.Int, value, "int", "Integer");
+		}
+
+		public InheritanceType? InheritType
+		{
+			get => this.InternalGetEnumType(nameof(this.InheritType), out InheritanceType type) ? type : (InheritanceType?)null;
+			set => this.InternalSetEnumType(nameof(this.InheritType), value.HasValue, (int)(value ?? 0), "enum", String.Empty);
 		}
 
 		internal Model(IElement element, IScene scene) : base(element, scene)
@@ -189,13 +220,6 @@ namespace FBXSharp.Objective
 
 		protected IElement MakeElement(string type)
 		{
-			var attributes = new IElementAttribute[3]
-			{
-				ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
-				ElementaryFactory.GetElementAttribute(this.Name),
-				ElementaryFactory.GetElementAttribute(type),
-			};
-
 			var elements = new IElement[6];
 
 			byte shading = 0;
@@ -216,7 +240,7 @@ namespace FBXSharp.Objective
 			elements[4] = Element.WithAttribute("Shading", ElementaryFactory.GetElementAttribute(shading));
 			elements[5] = Element.WithAttribute("Culling", ElementaryFactory.GetElementAttribute(this.Culling.ToString()));
 
-			return new Element("Model", elements, attributes);
+			return new Element("Model", elements, this.BuildAttributes(type));
 		}
 
 		public Matrix4x4 GetLocalTransform()

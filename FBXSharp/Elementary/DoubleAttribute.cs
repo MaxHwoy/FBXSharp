@@ -14,6 +14,8 @@ namespace FBXSharp.Elementary
 
 		public IElementAttributeType Type => DoubleAttribute.PropertyType;
 
+		public int Size => DoubleAttribute.PropertyStride;
+
 		public int Stride => DoubleAttribute.PropertyStride;
 
 		public int Length => DoubleAttribute.PropertyLength;

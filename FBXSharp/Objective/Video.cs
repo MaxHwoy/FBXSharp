@@ -23,8 +23,6 @@ namespace FBXSharp.Objective
 
 		public bool UsesMipMaps => this.m_useMipMaps;
 
-		// Type
-
 		internal Video(IElement element, IScene scene) : base(element, scene)
 		{
 			var content = element.FindChild("Content");
@@ -104,13 +102,6 @@ namespace FBXSharp.Objective
 
 		public override IElement AsElement()
 		{
-			var attributes = new IElementAttribute[3]
-			{
-				ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
-				ElementaryFactory.GetElementAttribute(this.Name),
-				ElementaryFactory.GetElementAttribute("Clip"),
-			};
-
 			var elements = new IElement[5 + (this.m_content.Length == 0 ? 0 : 1)];
 
 			elements[0] = Element.WithAttribute("Type", ElementaryFactory.GetElementAttribute("Clip"));
@@ -124,7 +115,7 @@ namespace FBXSharp.Objective
 				elements[5] = Element.WithAttribute("Content", ElementaryFactory.GetElementAttribute(this.m_content));
 			}
 
-			return new Element("Video", elements, attributes);
+			return new Element("Video", elements, this.BuildAttributes("Clip"));
 		}
 	}
 }

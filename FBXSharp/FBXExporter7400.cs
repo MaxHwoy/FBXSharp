@@ -176,7 +176,7 @@ namespace FBXSharp
 				},
 				new IElementAttribute[]
 				{
-					ElementaryFactory.GetElementAttribute("GlobalInfo"),
+					ElementaryFactory.GetElementAttribute("GlobalInfo::SceneInfo"),
 					ElementaryFactory.GetElementAttribute("UserData")
 				}
 			);

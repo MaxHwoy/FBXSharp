@@ -15,6 +15,6 @@ namespace FBXSharp.Objective
 		//virtual int getClusterCount() const = 0;
 		//virtual const Cluster* getCluster(int idx) const = 0;
 
-		public override IElement AsElement() => throw new System.NotImplementedException();
+		public override IElement AsElement(bool binary) => throw new System.NotImplementedException();
 	}
 }

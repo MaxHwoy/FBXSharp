@@ -1551,7 +1551,7 @@ namespace FBXSharp
 			return version >= 7500 ? cursor.Reader.ReadInt64() : cursor.Reader.ReadInt32();
 		}
 
-		private static T[] ReadArrayProperty<T>(in Cursor cursor) where T : unmanaged
+		private static T[] ReadArrayAttribute<T>(in Cursor cursor) where T : unmanaged
 		{
 			int length = cursor.Reader.ReadInt32();
 			int encode = cursor.Reader.ReadInt32();
@@ -1625,19 +1625,19 @@ namespace FBXSharp
 					return new BinaryAttribute(cursor.Reader.ReadBytes(cursor.Reader.ReadInt32()));
 
 				case IElementAttributeType.ArrayBoolean:
-					return new ArrayBooleanAttribute(FBXImporter.ReadArrayProperty<bool>(cursor));
+					return new ArrayBooleanAttribute(FBXImporter.ReadArrayAttribute<bool>(cursor));
 
 				case IElementAttributeType.ArrayInt32:
-					return new ArrayInt32Attribute(FBXImporter.ReadArrayProperty<int>(cursor));
+					return new ArrayInt32Attribute(FBXImporter.ReadArrayAttribute<int>(cursor));
 
 				case IElementAttributeType.ArrayInt64:
-					return new ArrayInt64Attribute(FBXImporter.ReadArrayProperty<long>(cursor));
+					return new ArrayInt64Attribute(FBXImporter.ReadArrayAttribute<long>(cursor));
 
 				case IElementAttributeType.ArraySingle:
-					return new ArraySingleAttribute(FBXImporter.ReadArrayProperty<float>(cursor));
+					return new ArraySingleAttribute(FBXImporter.ReadArrayAttribute<float>(cursor));
 
 				case IElementAttributeType.ArrayDouble:
-					return new ArrayDoubleAttribute(FBXImporter.ReadArrayProperty<double>(cursor));
+					return new ArrayDoubleAttribute(FBXImporter.ReadArrayAttribute<double>(cursor));
 
 				default:
 					throw new Exception($"Unknown element property type {(byte)etype} at offset 0x{cursor.Reader.BaseStream.Position - 1:X8}");

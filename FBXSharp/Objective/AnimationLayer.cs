@@ -12,7 +12,7 @@ namespace FBXSharp.Objective
 		{
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
 			return null; // #TODO
 		}

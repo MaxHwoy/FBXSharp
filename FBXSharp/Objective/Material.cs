@@ -166,7 +166,7 @@ namespace FBXSharp.Objective
 			return connections;
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
 			var elements = new IElement[4];
 
@@ -175,7 +175,7 @@ namespace FBXSharp.Objective
 			elements[2] = Element.WithAttribute("MultiLayer", ElementaryFactory.GetElementAttribute(this.MultiLayer ? 1 : 0));
 			elements[3] = this.BuildProperties70();
 
-			return new Element("Material", elements, this.BuildAttributes(String.Empty));
+			return new Element("Material", elements, this.BuildAttributes(String.Empty, binary));
 		}
 	}
 

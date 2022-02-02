@@ -88,6 +88,6 @@ namespace FBXSharp
 
 		internal void InternalFillWithElement(IElement element) => this.FromElement(element);
 
-		public override IElement AsElement() => throw new NotSupportedException("Global Settings cannot be serialized");
+		public override IElement AsElement(bool binary) => throw new NotSupportedException("Global Settings cannot be serialized");
 	}
 }

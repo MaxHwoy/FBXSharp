@@ -89,14 +89,26 @@ namespace FBXSharp
 			}
 		}
 
-		protected IElementAttribute[] BuildAttributes(string type)
+		protected IElementAttribute[] BuildAttributes(string type, bool binary)
 		{
-			return new IElementAttribute[3]
+			if (binary)
 			{
-				ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
-				ElementaryFactory.GetElementAttribute($"{this.Name}::{this.Type}"),
-				ElementaryFactory.GetElementAttribute(type),
-			};
+				return new IElementAttribute[3]
+				{
+					ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
+					ElementaryFactory.GetElementAttribute($"{this.Name}\x00\x01{this.Type}"),
+					ElementaryFactory.GetElementAttribute(type),
+				};
+			}
+			else
+			{
+				return new IElementAttribute[3]
+				{
+					ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
+					ElementaryFactory.GetElementAttribute($"{this.Name}::{this.Type}"),
+					ElementaryFactory.GetElementAttribute(type),
+				};
+			}
 		}
 
 		protected IElement BuildProperties70()
@@ -304,7 +316,7 @@ namespace FBXSharp
 
 		public virtual Connection[] GetConnections() => Array.Empty<Connection>();
 
-		public abstract IElement AsElement();
+		public abstract IElement AsElement(bool binary);
 
 		public override string ToString() => $"{(String.IsNullOrEmpty(this.Name) ? this.GetHashCode().ToString() : this.Name)} : {this.GetType().Name}";
 	}

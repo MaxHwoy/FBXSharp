@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace FBXSharp
 {
-	public static class IOExtensions
+	internal static class IOExtensions
 	{
 		public static int ReadTextInt32(this BinaryReader br)
 		{
@@ -178,6 +179,42 @@ namespace FBXSharp
 			return sb.ToString();
 		}
 
+		public static void WriteStringPrefixByte(this BinaryWriter bw, string value)
+		{
+			if (String.IsNullOrEmpty(value))
+			{
+				bw.Write((byte)0);
+				return;
+			}
+
+			bw.Write((byte)value.Length);
+
+			for (int i = 0; i < value.Length; ++i)
+			{
+				bw.Write((byte)value[i]);
+			}
+		}
+		public static void WriteStringPrefixInt(this BinaryWriter bw, string value)
+		{
+			if (String.IsNullOrEmpty(value))
+			{
+				bw.Write(0);
+				return;
+			}
+
+			bw.Write(value.Length);
+
+			for (int i = 0; i < value.Length; ++i)
+			{
+				bw.Write((byte)value[i]);
+			}
+		}
+		public static void WriteBytesPrefixed(this BinaryWriter bw, byte[] value)
+		{
+			bw.Write(value.Length);
+			bw.Write(value);
+		}
+
 		public static unsafe T ReadUnmanaged<T>(this BinaryReader br) where T : unmanaged
 		{
 			var array = new byte[sizeof(T)];
@@ -194,6 +231,39 @@ namespace FBXSharp
 			handle.Free();
 
 			return result;
+		}
+
+		public static unsafe void WriteUnmanaged<T>(this BinaryWriter bw, T value) where T : unmanaged
+		{
+			var array = new byte[sizeof(T)];
+			fixed (byte* ptr = &array[0]) { *(T*)ptr = value; }
+			bw.BaseStream.Write(array, 0, array.Length);
+		}
+		public static void WriteManaged<T>(this BinaryWriter bw, T value) where T : struct
+		{
+			var size = Marshal.SizeOf<T>();
+			var array = new byte[size];
+
+			var handle = GCHandle.Alloc(array, GCHandleType.Pinned);
+			Marshal.StructureToPtr(value, handle.AddrOfPinnedObject(), false);
+
+			bw.Write(array);
+			handle.Free();
+		}
+
+		public static void FillBuffer(this BinaryWriter bw, int align)
+		{
+			int padding = align - ((int)(bw.BaseStream.Position % align));
+
+			if (padding == align)
+			{
+				padding = 0;
+			}
+
+			for (int i = 0; i < padding; ++i)
+			{
+				bw.Write((byte)0);
+			}
 		}
 	}
 }

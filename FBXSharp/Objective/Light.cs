@@ -31,9 +31,9 @@ namespace FBXSharp.Objective
 			}
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
-			return this.MakeElement("Light");
+			return this.MakeElement("Light", binary);
 		}
 	}
 
@@ -43,7 +43,7 @@ namespace FBXSharp.Objective
 		{
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
 			var elements = new IElement[3];
 
@@ -51,7 +51,7 @@ namespace FBXSharp.Objective
 			elements[1] = Element.WithAttribute("GeometryVersion", ElementaryFactory.GetElementAttribute(124));
 			elements[2] = this.BuildProperties70();
 
-			return new Element("NodeAttribute", elements, this.BuildAttributes("Light"));
+			return new Element("NodeAttribute", elements, this.BuildAttributes("Light", binary));
 		}
 	}
 }

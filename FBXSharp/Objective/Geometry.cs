@@ -261,7 +261,7 @@ namespace FBXSharp.Objective
 			});
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
 			if (this.m_subMeshes.Length != 0)
 			{
@@ -350,7 +350,7 @@ namespace FBXSharp.Objective
 				this.m_channels.RemoveAt(this.m_channels.Count - 1);
 			}
 
-			return new Element("Geometry", elements, this.BuildAttributes("Mesh"));
+			return new Element("Geometry", elements, this.BuildAttributes("Mesh", binary));
 		}
 	}
 

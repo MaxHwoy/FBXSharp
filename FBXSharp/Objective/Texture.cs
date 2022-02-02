@@ -219,7 +219,7 @@ namespace FBXSharp.Objective
 			}
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
 			int index = 0;
 			int count = 7 +
@@ -275,7 +275,7 @@ namespace FBXSharp.Objective
 				});
 			}
 
-			return new Element("Texture", elements, this.BuildAttributes(String.Empty));
+			return new Element("Texture", elements, this.BuildAttributes(String.Empty, binary));
 		}
 	}
 }

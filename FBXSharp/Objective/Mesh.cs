@@ -70,9 +70,9 @@ namespace FBXSharp.Objective
 			return connections;
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
-			return this.MakeElement("Mesh");
+			return this.MakeElement("Mesh", binary);
 		}
 	}
 }

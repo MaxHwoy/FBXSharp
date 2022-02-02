@@ -100,7 +100,7 @@ namespace FBXSharp.Objective
 			// #TODO : detect mipmaps and texture type
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
 			var elements = new IElement[5 + (this.m_content.Length == 0 ? 0 : 1)];
 
@@ -115,7 +115,7 @@ namespace FBXSharp.Objective
 				elements[5] = Element.WithAttribute("Content", ElementaryFactory.GetElementAttribute(this.m_content));
 			}
 
-			return new Element("Video", elements, this.BuildAttributes("Clip"));
+			return new Element("Video", elements, this.BuildAttributes("Clip", binary));
 		}
 	}
 }

@@ -31,9 +31,9 @@ namespace FBXSharp.Objective
 			}
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
-			return this.MakeElement("Null");
+			return this.MakeElement("Null", binary);
 		}
 	}
 
@@ -43,14 +43,14 @@ namespace FBXSharp.Objective
 		{
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
 			var elements = new IElement[2];
 
 			elements[0] = Element.WithAttribute("TypeFlags", ElementaryFactory.GetElementAttribute("Null"));
 			elements[1] = this.BuildProperties70();
 
-			return new Element("NodeAttribute", elements, this.BuildAttributes("Null"));
+			return new Element("NodeAttribute", elements, this.BuildAttributes("Null", binary));
 		}
 	}
 }

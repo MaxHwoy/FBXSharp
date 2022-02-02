@@ -218,7 +218,7 @@ namespace FBXSharp.Objective
 			return t * roff * rpip * rpre * r * post * rpii * soff * spip * s * spii;
 		}
 
-		protected IElement MakeElement(string type)
+		protected IElement MakeElement(string type, bool binary)
 		{
 			var elements = new IElement[6];
 
@@ -240,7 +240,7 @@ namespace FBXSharp.Objective
 			elements[4] = Element.WithAttribute("Shading", ElementaryFactory.GetElementAttribute(shading));
 			elements[5] = Element.WithAttribute("Culling", ElementaryFactory.GetElementAttribute(this.Culling.ToString()));
 
-			return new Element("Model", elements, this.BuildAttributes(type));
+			return new Element("Model", elements, this.BuildAttributes(type, binary));
 		}
 
 		public Matrix4x4 GetLocalTransform()

@@ -46,6 +46,6 @@ namespace FBXSharp
 			}
 		}
 
-		public override IElement AsElement() => throw new NotSupportedException("Templates cannot be serialized");
+		public override IElement AsElement(bool binary) => throw new NotSupportedException("Templates cannot be serialized");
 	}
 }

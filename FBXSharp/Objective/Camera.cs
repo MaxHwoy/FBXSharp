@@ -32,9 +32,9 @@ namespace FBXSharp.Objective
 			}
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
-			return this.MakeElement("Camera");
+			return this.MakeElement("Camera", binary);
 		}
 	}
 
@@ -141,7 +141,7 @@ namespace FBXSharp.Objective
 			}
 		}
 
-		public override IElement AsElement()
+		public override IElement AsElement(bool binary)
 		{
 			var elements = new IElement[10];
 
@@ -181,7 +181,7 @@ namespace FBXSharp.Objective
 			elements[7] = Element.WithAttribute(nameof(this.ShowAudio), ElementaryFactory.GetElementAttribute(this.ShowAudio));
 			elements[9] = Element.WithAttribute(nameof(this.CameraOrthoZoom), ElementaryFactory.GetElementAttribute(this.CameraOrthoZoom));
 
-			return new Element("NodeAttribute", elements, this.BuildAttributes("Camera"));
+			return new Element("NodeAttribute", elements, this.BuildAttributes("Camera", binary));
 		}
 	}
 }

@@ -1,7 +1,7 @@
 ﻿using FBXSharp.Core;
-using FBXSharp.Objective;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.IO;
 
 namespace FBXSharp
@@ -15,7 +15,6 @@ namespace FBXSharp
 			public string AppName { get; set; }
 			public string AppVersion { get; set; }
 			public DateTime SaveTime { get; set; }
-			public bool EmbedTextures { get; set; }
 			public bool CompressData { get; set; }
 		}
 		
@@ -181,7 +180,7 @@ namespace FBXSharp
 				}
 			);
 
-			return new Element("FBXHeaderExtensions", children, null);
+			return new Element("FBXHeaderExtension", children, null);
 		}
 
 		private IElement GetFileId(in Options options)
@@ -304,7 +303,7 @@ namespace FBXSharp
 
 			for (int i = 0; i < elements.Length; ++i)
 			{
-				elements[i] = this.m_scene.Objects[i].AsElement();
+				elements[i] = this.m_scene.Objects[i].AsElement(true);
 			}
 
 			return new Element("Objects", elements, null);
@@ -401,12 +400,125 @@ namespace FBXSharp
 			return new Element("Takes", elements, null);
 		}
 
+		private static void WriteArrayAttribute<T>(BinaryWriter bw, T[] array, bool compress) where T : unmanaged
+		{
+			if (compress)
+			{
+				unsafe
+				{
+					var buffer = new byte[sizeof(T) * array.Length];
+					var output = new byte[buffer.Length << 1];
+
+					fixed (T* ptr = &array[0])
+					{
+						Marshal.Copy(new IntPtr(ptr), buffer, 0, buffer.Length);
+					}
+
+					var deflater = new ICSharpCode.SharpZipLib.Zip.Compression.Deflater();
+
+					deflater.SetInput(buffer);
+
+					deflater.Finish();
+
+					var outlen = deflater.Deflate(output);
+
+					bw.Write(array.Length);
+					bw.Write(1);
+					bw.Write(outlen);
+					bw.BaseStream.Write(output, 0, outlen);
+				}
+			}
+			else
+			{
+				unsafe
+				{
+					var buffer = new byte[sizeof(T) * array.Length];
+
+					fixed (T* ptr = &array[0])
+					{
+						Marshal.Copy(new IntPtr(ptr), buffer, 0, buffer.Length);
+					}
+
+					bw.Write(array.Length);
+					bw.Write(0);
+					bw.Write(buffer.Length);
+					bw.Write(buffer);
+				}
+			}
+		}
+
+		private static void WriteAttribute(BinaryWriter bw, IElementAttribute attribute, bool compress)
+		{
+			bw.Write((byte)attribute.Type);
+
+			switch (attribute.Type)
+			{
+				case IElementAttributeType.Byte: bw.Write((byte)attribute.GetElementValue()); break;
+				case IElementAttributeType.Int16: bw.Write((short)attribute.GetElementValue()); break;
+				case IElementAttributeType.Int32: bw.Write((int)attribute.GetElementValue()); break;
+				case IElementAttributeType.Int64: bw.Write((long)attribute.GetElementValue()); break;
+				case IElementAttributeType.Single: bw.Write((float)attribute.GetElementValue()); break;
+				case IElementAttributeType.Double: bw.Write((double)attribute.GetElementValue()); break;
+				case IElementAttributeType.String: bw.WriteStringPrefixInt(attribute.GetElementValue().ToString()); break;
+				case IElementAttributeType.Binary: bw.WriteBytesPrefixed(attribute.GetElementValue() as byte[]); break;
+				case IElementAttributeType.ArrayBoolean: FBXExporter7400.WriteArrayAttribute(bw, attribute.GetElementValue() as byte[], compress); break;
+				case IElementAttributeType.ArrayInt32: FBXExporter7400.WriteArrayAttribute(bw, attribute.GetElementValue() as int[], compress); break;
+				case IElementAttributeType.ArrayInt64: FBXExporter7400.WriteArrayAttribute(bw, attribute.GetElementValue() as long[], compress); break;
+				case IElementAttributeType.ArraySingle: FBXExporter7400.WriteArrayAttribute(bw, attribute.GetElementValue() as float[], compress); break;
+				case IElementAttributeType.ArrayDouble: FBXExporter7400.WriteArrayAttribute(bw, attribute.GetElementValue() as double[], compress); break;
+			}
+		}
+
+		private static void WriteElements(BinaryWriter bw, IElement[] elements, long start, bool compress)
+		{
+			for (int i = 0; i < elements.Length; ++i)
+			{
+				var element = elements[i];
+				var current = bw.BaseStream.Position;
+
+				bw.Write(0); // temporary offset
+				bw.Write(0); // temporary count
+				bw.Write(0); // temporary length
+
+				bw.WriteStringPrefixByte(element.Name);
+
+				var alength = bw.BaseStream.Position;
+
+				for (int k = 0; k < element.Attributes.Length; ++k)
+				{
+					FBXExporter7400.WriteAttribute(bw, element.Attributes[k], compress);
+				}
+
+				var blength = bw.BaseStream.Position;
+
+				if (element.Children.Length != 0)
+				{
+					FBXExporter7400.WriteElements(bw, element.Children, start, compress);
+				}
+
+				var tailpos = bw.BaseStream.Position;
+
+				bw.BaseStream.Position = current;
+
+				bw.Write((int)(tailpos - start));
+				bw.Write(element.Attributes.Length);
+				bw.Write((int)(blength - alength));
+
+				bw.BaseStream.Position = tailpos;
+			}
+
+			bw.Write(0);
+			bw.Write(0);
+			bw.Write(0);
+			bw.Write((byte)0);
+		}
+
 		public void Save(Stream stream, in Options options)
 		{
-			//if (!stream.CanWrite)
-			//{
-			//	throw new Exception($"Cannot write to stream provided");
-			//}
+			if (!stream.CanWrite)
+			{
+				throw new Exception($"Cannot write to stream provided");
+			}
 
 			var main = new IElement[11];
 
@@ -422,9 +534,20 @@ namespace FBXSharp
 			main[9] = this.GetConnections();
 			main[10] = this.GetTakes();
 
-			// serialize here
+			using (var bw = new BinaryWriter(stream, System.Text.Encoding.UTF8, true))
+			{
+				var start = stream.Position;
 
-			int breaking = 0;
+				bw.WriteManaged(Header.CreateNew(7400));
+
+				FBXExporter7400.WriteElements(bw, main, start, options.CompressData);
+
+				bw.Write(FBXExporter7400.GetEncryption(options.SaveTime));
+
+				bw.FillBuffer(0x10);
+
+				bw.WriteManaged(Footer.CreateNew(7400));
+			}
 		}
 	}
 }

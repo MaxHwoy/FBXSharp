@@ -32,6 +32,6 @@ namespace FBXSharp.Objective
 		//virtual Matrix getTransformLinkMatrix() const = 0;
 		//virtual const Object* getLink() const = 0;
 
-		public override IElement AsElement() => throw new System.NotImplementedException();
+		public override IElement AsElement(bool binary) => throw new System.NotImplementedException();
 	}
 }

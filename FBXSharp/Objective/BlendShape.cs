@@ -12,6 +12,6 @@ namespace FBXSharp.Objective
 		{
 		}
 
-		public override IElement AsElement() => throw new System.NotImplementedException();
+		public override IElement AsElement(bool binary) => throw new System.NotImplementedException();
 	}
 }

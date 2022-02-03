@@ -158,5 +158,14 @@ namespace FBXSharp
 		public AnimationLayer CreateAnimationLayer() => this.AddObjectAndReturn(new AnimationLayer(null, this));
 		public AnimationCurve CreateAnimationCurve() => this.AddObjectAndReturn(new AnimationCurve(null, this));
 		public AnimationCurveNode CreateAnimationCurveNode() => this.AddObjectAndReturn(new AnimationCurveNode(null, this));
+
+		public Mesh CreateMesh() => this.AddObjectAndReturn(new Mesh(null, this));
+		public Light CreateLight() => this.AddObjectAndReturn(new Light(null, this));
+		public Camera CreateCamera() => this.AddObjectAndReturn(new Camera(null, this));
+		public NullNode CreateNullNode() => this.AddObjectAndReturn(new NullNode(null, this));
+
+		public NullAttribute CreateNullAttribute() => this.AddObjectAndReturn(new NullAttribute(null, this));
+		public LightAttribute CreateLightAttribute() => this.AddObjectAndReturn(new LightAttribute(null, this));
+		public CameraAttribute CreateCameraAttribute() => this.AddObjectAndReturn(new CameraAttribute(null, this));
 	}
 }

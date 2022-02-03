@@ -163,6 +163,7 @@ namespace FBXSharp
 				// #TODO
 
 				case "":
+				case "phong":
 				case "Phong":
 				default:
 					return TemplateFactory.GetSurfacePhongMaterialTemplate();

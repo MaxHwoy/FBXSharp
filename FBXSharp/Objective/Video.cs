@@ -68,24 +68,12 @@ namespace FBXSharp.Objective
 
 		public void SetAbsolutePath(string path)
 		{
-			if (!File.Exists(path))
-			{
-				throw new FileNotFoundException($"File with absolute path {path} does not exist");
-			}
-
 			this.m_absolute = path;
-			this.m_relative = Path.GetFileName(path);
 		}
 
 		public void SetRelativePath(string path)
 		{
-			if (!File.Exists(path))
-			{
-				throw new FileNotFoundException($"File with relative path {path} does not exist");
-			}
-
 			this.m_relative = path;
-			this.m_absolute = Path.GetFullPath(path);
 		}
 
 		public void SetContent(byte[] content)

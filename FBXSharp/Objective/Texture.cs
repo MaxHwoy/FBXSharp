@@ -203,6 +203,10 @@ namespace FBXSharp.Objective
 		}
 
 		internal void InternalSetVideo(Video video) => this.m_video = video;
+		internal void InternalSetAbsolutePath(string path) => this.m_absolute = path;
+		internal void InternalSetRelativePath(string path) => this.m_relative = path;
+		internal void InternalSetMediaString(string media) => this.m_media = media;
+		internal void InternalSetTextureName(string name) => this.m_textureName = name;
 
 		public override Connection[] GetConnections()
 		{
@@ -276,6 +280,144 @@ namespace FBXSharp.Objective
 			}
 
 			return new Element("Texture", elements, this.BuildAttributes(String.Empty, binary));
+		}
+	}
+
+	public class TextureBuilder : BuilderBase
+	{
+		private Video m_video;
+		private string m_absolute;
+		private string m_relative;
+		private string m_media;
+		private string m_textureName;
+		private Vector2? m_uvTraslation;
+		private Vector2? m_uvScaling;
+		private Texture.AlphaSourceType? m_alpha;
+		private Texture.CropBase? m_cropping;
+
+		public TextureBuilder(Scene scene) : base(scene)
+		{
+		}
+
+		public Texture BuildTexture()
+		{
+			var texture = this.m_scene.CreateTexture();
+
+			texture.Name = this.m_name;
+			texture.InternalSetMediaString(this.m_media ?? String.Empty);
+			texture.InternalSetTextureName(this.m_textureName ?? String.Empty);
+
+			if (this.m_video is null)
+			{
+				texture.InternalSetAbsolutePath(this.m_absolute ?? String.Empty);
+				texture.InternalSetRelativePath(this.m_relative ?? String.Empty);
+			}
+			else
+			{
+				texture.InternalSetAbsolutePath(this.m_video.AbsolutePath);
+				texture.InternalSetRelativePath(this.m_video.RelativePath);
+				texture.UseMipMap = this.m_video.UsesMipMaps;
+			}
+
+			texture.UVTranslation = this.m_uvTraslation;
+			texture.UVScaling = this.m_uvScaling;
+			texture.AlphaSource = this.m_alpha;
+			texture.Cropping = this.m_cropping;
+
+			foreach (var property in this.m_properties)
+			{
+				texture.AddProperty(property);
+			}
+
+			return texture;
+		}
+
+		public TextureBuilder WithName(string name)
+		{
+			this.SetObjectName(name);
+			return this;
+		}
+
+		public TextureBuilder WithFBXProperty<T>(string name, T value, bool isUser = false)
+		{
+			this.SetFBXProperty(name, value, isUser);
+			return this;
+		}
+		public TextureBuilder WithFBXProperty<T>(string name, T value, IElementPropertyFlags flags)
+		{
+			this.SetFBXProperty(name, value, flags);
+			return this;
+		}
+		public TextureBuilder WithFBXProperty<T>(FBXProperty<T> property)
+		{
+			this.SetFBXProperty(property);
+			return this;
+		}
+
+		public TextureBuilder WithVideo(Video video)
+		{
+			if (video is null)
+			{
+				throw new ArgumentNullException("Video passed cannot be null");
+			}
+
+			if (video.Scene != this.m_scene)
+			{
+				throw new ArgumentException("Video should share same scene as the texture");
+			}
+
+			this.m_video = video;
+			return this;
+		}
+
+		public TextureBuilder WithAbsolutePath(string path)
+		{
+			if (this.m_video is null)
+			{
+				this.m_absolute = path;
+			}
+
+			return this;
+		}
+		public TextureBuilder WithRelativePath(string path)
+		{
+			if (this.m_video is null && !String.IsNullOrWhiteSpace(path))
+			{
+				this.m_relative = path;
+			}
+
+			return this;
+		}
+		public TextureBuilder WithMedia(string media)
+		{
+			this.m_media = media;
+			return this;
+		}
+		public TextureBuilder WithTextureName(string name)
+		{
+			this.m_textureName = name;
+			return this;
+		}
+
+		public TextureBuilder WithUVTranslation(Vector2 uv)
+		{
+			this.m_uvTraslation = uv;
+			return this;
+		}
+		public TextureBuilder WithUVScaling(Vector2 uv)
+		{
+			this.m_uvScaling = uv;
+			return this;
+		}
+		public TextureBuilder WithAlphaSource(Texture.AlphaSourceType alphaSource)
+		{
+			this.m_alpha = alphaSource;
+			return this;
+		}
+		public TextureBuilder WithCropping(Texture.CropBase cropping)
+		{
+			this.m_cropping = cropping;
+			return this;
 		}
 	}
 }

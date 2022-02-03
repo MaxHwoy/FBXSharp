@@ -217,10 +217,33 @@ namespace FBXSharp.Objective
 		}
 
 		private readonly List<Material.Channel> m_channels;
+		private string m_shadingModel;
+		private bool m_multiLayer;
 
 		public MaterialBuilder(Scene scene) : base(scene)
 		{
 			this.m_channels = new List<Material.Channel>();
+		}
+
+		public Material BuildMaterial()
+		{
+			var material = this.m_scene.CreateMaterial();
+
+			material.Name = this.m_name;
+			material.ShadingModel = this.m_shadingModel;
+			material.MultiLayer = this.m_multiLayer;
+
+			foreach (var channel in this.m_channels)
+			{
+				material.InternalSetChannel(channel);
+			}
+
+			foreach (var property in this.m_properties)
+			{
+				material.AddProperty(property);
+			}
+
+			return material;
 		}
 
 		public MaterialBuilder WithName(string name)
@@ -242,6 +265,17 @@ namespace FBXSharp.Objective
 		public MaterialBuilder WithFBXProperty<T>(FBXProperty<T> property)
 		{
 			this.SetFBXProperty(property);
+			return this;
+		}
+
+		public MaterialBuilder WithShadingModel(string shading)
+		{
+			this.m_shadingModel = shading ?? "Phong";
+			return this;
+		}
+		public MaterialBuilder WithMultiLayer(bool multiLayer)
+		{
+			this.m_multiLayer = multiLayer;
 			return this;
 		}
 

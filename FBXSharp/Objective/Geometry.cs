@@ -488,5 +488,61 @@ namespace FBXSharp.Objective
 			this.m_subMeshes.Add(subMesh);
 			return this;
 		}
+
+		public GeometryBuilder WithNormals(Vector3[] normals, int layer = 0, string name = "")
+		{
+			if (normals is null || normals.Length == 0 || this.m_channels.FindIndex(_ => _.Layer == layer && _.Type == Geometry.ChannelType.Normal) >= 0)
+			{
+				return this;
+			}
+
+			this.m_channels.Add(new Geometry.Channel(layer, name, Geometry.ChannelType.Normal, Geometry.ComponentType.Double3, normals));
+
+			return this;
+		}
+		public GeometryBuilder WithTangents(Vector4[] tangents, int layer = 0, string name = "")
+		{
+			if (tangents is null || tangents.Length == 0 || this.m_channels.FindIndex(_ => _.Layer == layer && _.Type == Geometry.ChannelType.Tangent) >= 0)
+			{
+				return this;
+			}
+
+			this.m_channels.Add(new Geometry.Channel(layer, name, Geometry.ChannelType.Tangent, Geometry.ComponentType.Double4, tangents));
+
+			return this;
+		}
+		public GeometryBuilder WithBinormals(Vector4[] binormals, int layer = 0, string name = "")
+		{
+			if (binormals is null || binormals.Length == 0 || this.m_channels.FindIndex(_ => _.Layer == layer && _.Type == Geometry.ChannelType.Binormal) >= 0)
+			{
+				return this;
+			}
+
+			this.m_channels.Add(new Geometry.Channel(layer, name, Geometry.ChannelType.Binormal, Geometry.ComponentType.Double4, binormals));
+
+			return this;
+		}
+		public GeometryBuilder WithColors(Vector4[] colors, int layer = 0, string name = "")
+		{
+			if (colors is null || colors.Length == 0 || this.m_channels.FindIndex(_ => _.Layer == layer && _.Type == Geometry.ChannelType.Color) >= 0)
+			{
+				return this;
+			}
+
+			this.m_channels.Add(new Geometry.Channel(layer, name, Geometry.ChannelType.Color, Geometry.ComponentType.Double4, colors));
+
+			return this;
+		}
+		public GeometryBuilder WithUVs(Vector2[] uvs, int layer = 0, string name = "")
+		{
+			if (uvs is null || uvs.Length == 0 || this.m_channels.FindIndex(_ => _.Layer == layer && _.Type == Geometry.ChannelType.TexCoord) >= 0)
+			{
+				return this;
+			}
+
+			this.m_channels.Add(new Geometry.Channel(layer, name, Geometry.ChannelType.TexCoord, Geometry.ComponentType.Double2, uvs));
+
+			return this;
+		}
 	}
 }

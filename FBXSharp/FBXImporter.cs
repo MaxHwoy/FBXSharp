@@ -1183,7 +1183,7 @@ namespace FBXSharp
 			}
 		}
 
-		private static IEnumerable<TemplateObject> ParseTemplates(Element root)
+		private static IEnumerable<TemplateObject> ParseTemplates(Element root, Scene scene)
 		{
 			var definitions = root.FindChild("Definitions");
 			
@@ -1210,7 +1210,7 @@ namespace FBXSharp
 
 				if (Enum.TryParse(child.Attributes[0].GetElementValue().ToString(), out FBXObjectType type))
 				{
-					yield return new TemplateObject(type, template, null);
+					yield return new TemplateObject(type, template, scene);
 				}
 			}
 		}
@@ -1865,11 +1865,10 @@ namespace FBXSharp
 					root = FBXImporter.TokenizeAscii();
 				}
 
-				var templates = FBXImporter.ParseTemplates(root).ToArray();
 				var connections = FBXImporter.ParseConnections(root).ToArray();
 				var takeInfos = FBXImporter.ParseTakeInfos(root).ToArray();
-
 				var result = FBXImporter.ParseObjects(root, connections, settings.Flags);
+				var templates = FBXImporter.ParseTemplates(root, result).ToArray();
 
 				result.InternalSetTakeInfos(takeInfos);
 				result.InternalSetTemplates(templates);

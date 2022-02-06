@@ -1,4 +1,5 @@
-﻿using FBXSharp.Objective;
+﻿using FBXSharp.Core;
+using FBXSharp.Objective;
 using FBXSharp.ValueTypes;
 using System;
 using IEPF = FBXSharp.Core.IElementPropertyFlags;
@@ -7,9 +8,9 @@ namespace FBXSharp
 {
 	public static class TemplateFactory
 	{
-		public static TemplateObject GetAnimationStackTemplate()
+		public static TemplateObject GetAnimationStackTemplate(IScene scene = null)
 		{
-			var template = new TemplateObject(FBXObjectType.AnimationStack, null, null)
+			var template = new TemplateObject(FBXObjectType.AnimationStack, null, scene)
 			{
 				Name = "FbxAnimStack",
 			};
@@ -23,9 +24,9 @@ namespace FBXSharp
 			return template;
 		}
 
-		public static TemplateObject GetAnimationLayerTemplate()
+		public static TemplateObject GetAnimationLayerTemplate(IScene scene = null)
 		{
-			var template = new TemplateObject(FBXObjectType.AnimationLayer, null, null)
+			var template = new TemplateObject(FBXObjectType.AnimationLayer, null, scene)
 			{
 				Name = "FbxAnimLayer",
 			};
@@ -43,9 +44,9 @@ namespace FBXSharp
 			return template;
 		}
 
-		public static TemplateObject GetModelTemplate()
+		public static TemplateObject GetModelTemplate(IScene scene = null)
 		{
-			var template = new TemplateObject(FBXObjectType.Model, null, null)
+			var template = new TemplateObject(FBXObjectType.Model, null, scene)
 			{
 				Name = "FbxNode",
 			};
@@ -125,9 +126,9 @@ namespace FBXSharp
 			return template;
 		}
 		
-		public static TemplateObject GetNodeAttributeTemplate()
+		public static TemplateObject GetNodeAttributeTemplate(IScene scene = null)
 		{
-			var template = new TemplateObject(FBXObjectType.NodeAttribute, null, null)
+			var template = new TemplateObject(FBXObjectType.NodeAttribute, null, scene)
 			{
 				Name = "FbxNull",
 			};
@@ -139,9 +140,9 @@ namespace FBXSharp
 			return template;
 		}
 
-		public static TemplateObject GetGeometryTemplate()
+		public static TemplateObject GetGeometryTemplate(IScene scene = null)
 		{
-			var template = new TemplateObject(FBXObjectType.Geometry, null, null)
+			var template = new TemplateObject(FBXObjectType.Geometry, null, scene)
 			{
 				Name = "FbxMesh",
 			};
@@ -156,7 +157,7 @@ namespace FBXSharp
 			return template;
 		}
 
-		public static TemplateObject GetMaterialTemplate(string shading = "")
+		public static TemplateObject GetMaterialTemplate(string shading = "", IScene scene = null)
 		{
 			switch (shading)
 			{
@@ -166,13 +167,13 @@ namespace FBXSharp
 				case "phong":
 				case "Phong":
 				default:
-					return TemplateFactory.GetSurfacePhongMaterialTemplate();
+					return TemplateFactory.GetSurfacePhongMaterialTemplate(scene);
 			}
 		}
 
-		public static TemplateObject GetTextureTemplate()
+		public static TemplateObject GetTextureTemplate(IScene scene = null)
 		{
-			var template = new TemplateObject(FBXObjectType.Texture, null, null)
+			var template = new TemplateObject(FBXObjectType.Texture, null, scene)
 			{
 				Name = "FbxFileTexture",
 			};
@@ -198,9 +199,9 @@ namespace FBXSharp
 			return template;
 		}
 
-		public static TemplateObject GetVideoTemplate()
+		public static TemplateObject GetVideoTemplate(IScene scene = null)
 		{
-			var template = new TemplateObject(FBXObjectType.Video, null, null)
+			var template = new TemplateObject(FBXObjectType.Video, null, scene)
 			{
 				Name = "FbxVideo",
 			};
@@ -229,9 +230,9 @@ namespace FBXSharp
 			return template;
 		}
 
-		public static TemplateObject GetSurfacePhongMaterialTemplate()
+		public static TemplateObject GetSurfacePhongMaterialTemplate(IScene scene = null)
 		{
-			var template = new TemplateObject(FBXObjectType.Material, null, null)
+			var template = new TemplateObject(FBXObjectType.Material, null, scene)
 			{
 				Name = "FbxSurfacePhong",
 			};
@@ -262,22 +263,23 @@ namespace FBXSharp
 			return template;
 		}
 
-		public static TemplateObject GetTemplateForType(FBXObjectType type)
+		public static TemplateObject GetTemplateForType(FBXObjectType type, IScene scene = null)
 		{
 			switch (type)
 			{
-				case FBXObjectType.AnimationLayer: return TemplateFactory.GetAnimationLayerTemplate();
-				case FBXObjectType.AnimationStack: return TemplateFactory.GetAnimationStackTemplate();
-				case FBXObjectType.Model: return TemplateFactory.GetModelTemplate();
-				case FBXObjectType.Geometry: return TemplateFactory.GetGeometryTemplate();
-				case FBXObjectType.Material: return TemplateFactory.GetMaterialTemplate();
-				case FBXObjectType.Texture: return TemplateFactory.GetTextureTemplate();
-				case FBXObjectType.Video: return TemplateFactory.GetVideoTemplate();
+				case FBXObjectType.AnimationLayer: return TemplateFactory.GetAnimationLayerTemplate(scene);
+				case FBXObjectType.AnimationStack: return TemplateFactory.GetAnimationStackTemplate(scene);
+				case FBXObjectType.NodeAttribute: return TemplateFactory.GetNodeAttributeTemplate(scene);
+				case FBXObjectType.Model: return TemplateFactory.GetModelTemplate(scene);
+				case FBXObjectType.Geometry: return TemplateFactory.GetGeometryTemplate(scene);
+				case FBXObjectType.Material: return TemplateFactory.GetMaterialTemplate(scene: scene);
+				case FBXObjectType.Texture: return TemplateFactory.GetTextureTemplate(scene);
+				case FBXObjectType.Video: return TemplateFactory.GetVideoTemplate(scene);
 				default: return null;
 			}
 		}
 
-		public static TemplateObject GetTemplateForObject(FBXObject @object)
+		public static TemplateObject GetTemplateForObject(FBXObject @object, IScene scene = null)
 		{
 			if (@object is null)
 			{
@@ -286,13 +288,13 @@ namespace FBXSharp
 
 			switch (@object.Type)
 			{
-				case FBXObjectType.AnimationLayer: return TemplateFactory.GetAnimationLayerTemplate();
-				case FBXObjectType.AnimationStack: return TemplateFactory.GetAnimationStackTemplate();
-				case FBXObjectType.Model: return TemplateFactory.GetModelTemplate();
-				case FBXObjectType.Geometry: return TemplateFactory.GetGeometryTemplate();
-				case FBXObjectType.Material: return TemplateFactory.GetMaterialTemplate((@object as Material).ShadingModel);
-				case FBXObjectType.Texture: return TemplateFactory.GetTextureTemplate();
-				case FBXObjectType.Video: return TemplateFactory.GetVideoTemplate();
+				case FBXObjectType.AnimationLayer: return TemplateFactory.GetAnimationLayerTemplate(scene);
+				case FBXObjectType.AnimationStack: return TemplateFactory.GetAnimationStackTemplate(scene);
+				case FBXObjectType.Model: return TemplateFactory.GetModelTemplate(scene);
+				case FBXObjectType.Geometry: return TemplateFactory.GetGeometryTemplate(scene);
+				case FBXObjectType.Material: return TemplateFactory.GetMaterialTemplate((@object as Material).ShadingModel, scene);
+				case FBXObjectType.Texture: return TemplateFactory.GetTextureTemplate(scene);
+				case FBXObjectType.Video: return TemplateFactory.GetVideoTemplate(scene);
 				default: return null;
 			}
 		}

@@ -227,6 +227,7 @@ namespace FBXSharp.Objective
 		public MaterialBuilder(Scene scene) : base(scene)
 		{
 			this.m_channels = new List<Material.Channel>();
+			this.m_shadingModel = "Phong";
 		}
 
 		public Material BuildMaterial()
@@ -309,7 +310,7 @@ namespace FBXSharp.Objective
 		public MaterialBuilder WithColor(string name, ColorRGB color)
 		{
 			var flag = IElementPropertyFlags.Imported | IElementPropertyFlags.Animatable;
-			var prop = new FBXProperty<ColorRGB>("Color", String.Empty, name, flag, color);
+			var prop = new FBXProperty<Vector3>("Color", String.Empty, name, flag, color);
 
 			this.SetFBXProperty(prop);
 			return this;

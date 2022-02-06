@@ -86,7 +86,7 @@ namespace FBXSharp
 
 			if (indexer < 0)
 			{
-				var template = new TemplateObject(objectType, null, this);
+				var template = TemplateFactory.GetTemplateForType(objectType, this);
 
 				this.m_templates.Add(template);
 
@@ -101,14 +101,14 @@ namespace FBXSharp
 
 				if (creationType == TemplateCreationType.NewOverrideAnyExisting)
 				{
-					this.m_templates[indexer] = TemplateFactory.GetTemplateForType(objectType);
+					this.m_templates[indexer] = TemplateFactory.GetTemplateForType(objectType, this);
 
 					return this.m_templates[indexer];
 				}
 
 				if (creationType == TemplateCreationType.MergeIfExistingIsFound)
 				{
-					this.m_templates[indexer].MergeWith(TemplateFactory.GetTemplateForType(objectType));
+					this.m_templates[indexer].MergeWith(TemplateFactory.GetTemplateForType(objectType, null));
 
 					return this.m_templates[indexer];
 				}

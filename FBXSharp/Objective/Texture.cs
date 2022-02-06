@@ -110,6 +110,12 @@ namespace FBXSharp.Objective
 			set => this.InternalSetPrimitive<bool>(nameof(this.UseMipMap), IElementPropertyType.Bool, value, "bool", String.Empty);
 		}
 
+		public string UVSet
+		{
+			get => this.InternalGetReference<string>(nameof(this.UVSet), IElementPropertyType.String);
+			set => this.InternalSetReference<string>(nameof(this.UVSet), IElementPropertyType.String, value, "KString", String.Empty);
+		}
+
 		internal Texture(IElement element, IScene scene) : base(element, scene)
 		{
 			this.m_absolute = String.Empty;
@@ -201,6 +207,16 @@ namespace FBXSharp.Objective
 		internal void InternalSetRelativePath(string path) => this.m_relative = path;
 		internal void InternalSetMediaString(string media) => this.m_media = media;
 		internal void InternalSetTextureName(string name) => this.m_textureName = name;
+
+		public void SetAbsolutePath(string path)
+		{
+			this.m_absolute = path;
+		}
+
+		public void SetRelativePath(string path)
+		{
+			this.m_relative = path;
+		}
 
 		public override Connection[] GetConnections()
 		{

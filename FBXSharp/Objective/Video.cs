@@ -35,6 +35,18 @@ namespace FBXSharp.Objective
 
 		public bool UsesMipMaps => this.m_useMipMaps;
 
+		public string Path
+		{
+			get => this.InternalGetReference<string>(nameof(this.Path), IElementPropertyType.String);
+			set => this.InternalSetReference<string>(nameof(this.Path), IElementPropertyType.String, value, "KString", "XRefUrl");
+		}
+
+		public string RelPath
+		{
+			get => this.InternalGetReference<string>(nameof(this.RelPath), IElementPropertyType.String);
+			set => this.InternalSetReference<string>(nameof(this.RelPath), IElementPropertyType.String, value, "KString", "XRefUrl");
+		}
+
 		internal Video(IElement element, IScene scene) : base(element, scene)
 		{
 			this.m_image = ImageType.Other;

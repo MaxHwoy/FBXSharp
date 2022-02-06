@@ -247,6 +247,18 @@ namespace FBXSharp
 			return (T)attribute.GetPropertyValue();
 		}
 
+		protected T InternalGetReference<T>(string name, IElementPropertyType type) where T : class
+		{
+			var attribute = this.GetProperty(name, true);
+
+			if (attribute is null || attribute.Type != type)
+			{
+				return null;
+			}
+
+			return (T)attribute.GetPropertyValue();
+		}
+
 		protected void InternalSetPrimitive<T>(string name, IElementPropertyType type, T? value, string primary, string secondary, IElementPropertyFlags flags = IElementPropertyFlags.None) where T : struct
 		{
 			var attribute = this.GetProperty(name, false);
@@ -267,6 +279,30 @@ namespace FBXSharp
 				else
 				{
 					this.RemoveProperty(attribute);
+				}
+			}
+		}
+
+		protected void InternalSetReference<T>(string name, IElementPropertyType type, T value, string primary, string secondary, IElementPropertyFlags flags = IElementPropertyFlags.None) where T : class
+		{
+			var attribute = this.GetProperty(name, false);
+
+			if (attribute is null)
+			{
+				if (!(value is null))
+				{
+					this.AddProperty(new FBXProperty<T>(primary, secondary, name, flags | IElementPropertyFlags.Imported, value));
+				}
+			}
+			else if (attribute.Type == type)
+			{
+				if (value is null)
+				{
+					this.RemoveProperty(attribute);
+				}
+				else
+				{
+					attribute.SetPropertyValue(value);
 				}
 			}
 		}

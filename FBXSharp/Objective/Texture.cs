@@ -332,6 +332,7 @@ namespace FBXSharp.Objective
 			}
 			else
 			{
+				texture.InternalSetVideo(this.m_video);
 				texture.InternalSetAbsolutePath(this.m_video.AbsolutePath);
 				texture.InternalSetRelativePath(this.m_video.RelativePath);
 				texture.UseMipMap = this.m_video.UsesMipMaps;

@@ -212,6 +212,7 @@ namespace FBXSharp.Objective
 			DiffuseColor,
 			NormalMap,
 			HeightMap,
+			OcclusionMap,
 			ReflectionColor,
 			AmbientColor,
 			EmissiveColor,

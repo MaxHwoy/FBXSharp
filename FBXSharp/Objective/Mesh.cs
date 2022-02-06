@@ -36,6 +36,74 @@ namespace FBXSharp.Objective
 		internal void InternalSetGeometry(Geometry geometry) => this.m_geometry = geometry;
 		internal void InternalSetMaterial(Material material) => this.m_materials.Add(material);
 
+		public void SetGeometry(Geometry geometry)
+		{
+			if (geometry is null)
+			{
+				this.m_geometry = null;
+				return;
+			}
+
+			if (geometry.Scene != this.Scene)
+			{
+				throw new Exception("Geometry should share same scene with model");
+			}
+
+			this.m_geometry = geometry;
+		}
+
+		public void AddMaterial(Material material)
+		{
+			if (material is null)
+			{
+				throw new Exception("Cannot add null material");
+			}
+
+			if (material.Scene != this.Scene)
+			{
+				throw new Exception("Material should share same scene with model");
+			}
+
+			this.m_materials.Add(material);
+		}
+		public void RemoveMaterial(Material material)
+		{
+			if (material is null || material.Scene != this.Scene)
+			{
+				return;
+			}
+
+			_ = this.m_materials.Remove(material);
+		}
+		public void AddMaterialAt(Material material, int index)
+		{
+			if (material is null)
+			{
+				throw new Exception("Cannot add null material");
+			}
+
+			if (material.Scene != this.Scene)
+			{
+				throw new Exception("Material should share same scene with model");
+			}
+
+			if (index < 0 || index > this.m_materials.Count)
+			{
+				throw new ArgumentOutOfRangeException("Index should be in range 0 to material count inclusively");
+			}
+
+			this.m_materials.Insert(index, material);
+		}
+		public void RemoveMaterialAt(int index)
+		{
+			if (index < 0 || index >= this.m_materials.Count)
+			{
+				throw new ArgumentOutOfRangeException("Index should be in 0 to material count range");
+			}
+
+			this.m_materials.RemoveAt(index);
+		}
+
 		public override Connection[] GetConnections()
 		{
 			int counter = 0;

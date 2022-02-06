@@ -12,5 +12,8 @@ namespace FBXSharp.Core
 
 		TemplateObject GetTemplateObject(string name);
 		TemplateObject GetTemplateObject(FBXObjectType objectType);
+
+		FBXObject CreateFBXObject(FBXObjectType type);
+		void DestroyFBXObject(FBXObject @object);
 	}
 }

@@ -112,15 +112,21 @@ namespace FBXSharp.Objective
 
 		internal Texture(IElement element, IScene scene) : base(element, scene)
 		{
+			this.m_absolute = String.Empty;
+			this.m_relative = String.Empty;
+			this.m_media = String.Empty;
+			this.m_textureName = String.Empty;
+
+			if (element is null)
+			{
+				return;
+			}
+
 			var absolute = element.FindChild("FileName");
 
 			if (!(absolute is null) && absolute.Attributes.Length > 0 && absolute.Attributes[0].Type == IElementAttributeType.String)
 			{
 				this.m_absolute = absolute.Attributes[0].GetElementValue().ToString() ?? String.Empty;
-			}
-			else
-			{
-				this.m_absolute = String.Empty;
 			}
 
 			var relative = element.FindChild("RelativeFilename");
@@ -129,31 +135,19 @@ namespace FBXSharp.Objective
 			{
 				this.m_relative = relative.Attributes[0].GetElementValue().ToString() ?? String.Empty;
 			}
-			else
-			{
-				this.m_relative = String.Empty;
-			}
 
 			var media = element.FindChild("Media");
 
 			if (!(media is null) && media.Attributes.Length > 0 && media.Attributes[0].Type == IElementAttributeType.String)
 			{
-				this.m_media = media.Attributes[0].GetElementValue().ToString() ?? String.Empty;
-			}
-			else
-			{
-				this.m_media = String.Empty;
+				this.m_media = media.Attributes[0].GetElementValue().ToString().Substring("::").Substring("\x00\x01").Trim('\x00') ?? String.Empty;
 			}
 
 			var texture = element.FindChild("TextureName");
 
 			if (!(texture is null) && texture.Attributes.Length > 0 && texture.Attributes[0].Type == IElementAttributeType.String)
 			{
-				this.m_textureName = texture.Attributes[0].GetElementValue().ToString() ?? String.Empty;
-			}
-			else
-			{
-				this.m_textureName = String.Empty;
+				this.m_textureName = texture.Attributes[0].GetElementValue().ToString().Substring("::").Substring("\x00\x01").Trim('\x00') ?? String.Empty;
 			}
 
 			var uvTranslation = element.FindChild("ModelUVTranslation");
@@ -232,13 +226,21 @@ namespace FBXSharp.Objective
 				(this.AlphaSource.HasValue ? 1 : 0) +
 				(this.Cropping.HasValue ? 1 : 0);
 
+			var textureName = String.IsNullOrWhiteSpace(this.m_textureName)
+				? String.Empty
+				: this.m_textureName + (binary ? "\x00\x01" : "::") + "Texture";
+
+			var mediaName = String.IsNullOrWhiteSpace(this.m_media)
+				? String.Empty
+				: this.m_media + (binary ? "\x00\x01" : "::") + "Video";
+
 			var elements = new IElement[count];
 
 			elements[index++] = Element.WithAttribute("Type", ElementaryFactory.GetElementAttribute("TextureVideoClip"));
 			elements[index++] = Element.WithAttribute("Version", ElementaryFactory.GetElementAttribute(202));
-			elements[index++] = Element.WithAttribute("TextureName", ElementaryFactory.GetElementAttribute(this.m_textureName));
+			elements[index++] = Element.WithAttribute("TextureName", ElementaryFactory.GetElementAttribute(textureName));
 			elements[index++] = this.BuildProperties70();
-			elements[index++] = Element.WithAttribute("Media", ElementaryFactory.GetElementAttribute(this.m_media));
+			elements[index++] = Element.WithAttribute("Media", ElementaryFactory.GetElementAttribute(mediaName));
 			elements[index++] = Element.WithAttribute("FileName", ElementaryFactory.GetElementAttribute(this.m_absolute));
 			elements[index++] = Element.WithAttribute("RelativeFilename", ElementaryFactory.GetElementAttribute(this.m_relative));
 

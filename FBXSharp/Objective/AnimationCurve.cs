@@ -29,6 +29,11 @@ namespace FBXSharp.Objective
 			this.m_keyTimes = Array.Empty<long>();
 			this.m_keyValues = Array.Empty<float>();
 
+			if (element is null)
+			{
+				return;
+			}
+
 			var times = element.FindChild("KeyTime");
 			var value = element.FindChild("KeyValueFloat");
 

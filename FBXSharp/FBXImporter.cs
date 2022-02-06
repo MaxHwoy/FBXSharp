@@ -16,17 +16,19 @@ namespace FBXSharp
 	{
 		public struct LoadSettings
 		{
+			public string DataPath { get; set; }
 			public Stream Stream { get; set; }
 			public long Position { get; set; }
 			public long Length { get; set; }
 			public LoadFlags Flags { get; set; }
 
-			public LoadSettings(Stream stream) : this(stream, stream.Position, stream.Length - stream.Position)
+			public LoadSettings(Stream stream) : this(stream, stream.Position, stream.Length - stream.Position, null)
 			{
 			}
 
-			public LoadSettings(Stream stream, long position, long length, LoadFlags flags = LoadFlags.None)
+			public LoadSettings(Stream stream, long position, long length, string dataPath, LoadFlags flags = LoadFlags.None)
 			{
+				this.DataPath = dataPath;
 				this.Stream = stream;
 				this.Position = position;
 				this.Length = length;
@@ -1145,6 +1147,42 @@ namespace FBXSharp
 			}
 		}
 
+		private static void InternalPreloadVideoData(Scene scene, LoadFlags flags, string fbxPath)
+		{
+			if ((flags & LoadFlags.LoadVideoFiles) == 0)
+			{
+				return;
+			}
+
+			if (String.IsNullOrWhiteSpace(fbxPath))
+			{
+				return;
+			}
+
+			if (Path.HasExtension(fbxPath))
+			{
+				fbxPath = Path.GetDirectoryName(fbxPath);
+			}
+
+			foreach (var @object in scene.Objects)
+			{
+				if (@object.Type == FBXObjectType.Video)
+				{
+					var video = @object as Video;
+
+					if (video.Content.Length == 0)
+					{
+						var file = Path.GetFullPath(Path.Combine(fbxPath, video.RelativePath));
+
+						if (File.Exists(file))
+						{
+							video.SetContent(File.ReadAllBytes(file));
+						}
+					}
+				}
+			}
+		}
+
 		private static IEnumerable<TemplateObject> ParseTemplates(Element root)
 		{
 			var definitions = root.FindChild("Definitions");
@@ -1835,6 +1873,8 @@ namespace FBXSharp
 
 				result.InternalSetTakeInfos(takeInfos);
 				result.InternalSetTemplates(templates);
+
+				FBXImporter.InternalPreloadVideoData(result, settings.Flags, settings.DataPath);
 
 				br.BaseStream.Position = cursor.End;
 

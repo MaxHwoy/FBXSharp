@@ -10,5 +10,6 @@ namespace FBXSharp
 		RemapSubmeshes = 1 << 1,
 		IgnoreGeometry = 1 << 2,
 		IgnoreBlendShapes = 1 << 3,
+		LoadVideoFiles = 1 << 4,
 	}
 }

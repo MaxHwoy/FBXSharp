@@ -34,9 +34,11 @@ namespace FBXSharp
 	{
 		private readonly List<IElementProperty> m_properties;
 		private readonly ReadOnlyCollection<IElementProperty> m_readProps;
+		private IScene m_scene;
 
 		public abstract FBXObjectType Type { get; }
-		public IScene Scene { get; }
+
+		public IScene Scene => this.m_scene;
 
 		public string Name { get; set; }
 
@@ -44,7 +46,7 @@ namespace FBXSharp
 
 		internal FBXObject(IElement element, IScene scene)
 		{
-			this.Scene = scene;
+			this.m_scene = scene;
 			this.m_properties = new List<IElementProperty>();
 			this.m_readProps = new ReadOnlyCollection<IElementProperty>(this.m_properties);
 
@@ -62,7 +64,7 @@ namespace FBXSharp
 			{
 				if (element.Attributes[1].Type == IElementAttributeType.String)
 				{
-					this.Name = element.Attributes[1].GetElementValue().ToString().Substring("::").Substring("\x00\x01");
+					this.Name = element.Attributes[1].GetElementValue().ToString().Substring("::").Substring("\x00\x01").Trim('\x00');
 				}
 			}
 
@@ -315,6 +317,16 @@ namespace FBXSharp
 		public void RemoveAllProperties() => this.m_properties.Clear();
 
 		public virtual Connection[] GetConnections() => Array.Empty<Connection>();
+
+		public virtual void Destroy()
+		{
+			if (!(this.m_scene is null))
+			{
+				var scene = this.m_scene;
+				this.m_scene = null;
+				scene.DestroyFBXObject(this);
+			}
+		}
 
 		public abstract IElement AsElement(bool binary);
 

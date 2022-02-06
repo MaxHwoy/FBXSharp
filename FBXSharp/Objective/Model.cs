@@ -276,6 +276,11 @@ namespace FBXSharp.Objective
 				throw new ArgumentException("Model passed should share same scene with the current model");
 			}
 
+			if (Object.ReferenceEquals(this, model))
+			{
+				throw new Exception("Cannot add itself as a child");
+			}
+
 			if (model.Parent is null)
 			{
 				this.InternalSetChild(model);
@@ -298,12 +303,6 @@ namespace FBXSharp.Objective
 		}
 		public void AddChildAt(Model model, int index)
 		{
-			if (index == this.m_children.Count)
-			{
-				this.AddChild(model);
-				return;
-			}
-
 			if (model is null)
 			{
 				throw new ArgumentNullException("Model passed cannot be null");
@@ -312,6 +311,16 @@ namespace FBXSharp.Objective
 			if (model.Scene != this.Scene)
 			{
 				throw new ArgumentException("Model passed should share same scene with the current model");
+			}
+
+			if (Object.ReferenceEquals(this, model))
+			{
+				throw new Exception("Cannot add itself as a child");
+			}
+
+			if (index < 0 || index > this.m_children.Count)
+			{
+				throw new ArgumentOutOfRangeException("Index should be in range 0 to children count inclusively");
 			}
 
 			if (model.Parent is null)
@@ -330,7 +339,7 @@ namespace FBXSharp.Objective
 		{
 			if (index < 0 || index >= this.m_children.Count)
 			{
-				throw new ArgumentOutOfRangeException("Index should be in 0 to child count range");
+				throw new ArgumentOutOfRangeException("Index should be in 0 to children count range");
 			}
 
 			var model = this.m_children[index];
@@ -346,6 +355,15 @@ namespace FBXSharp.Objective
 
 			_ = this.m_parent.m_children.Remove(this);
 			this.m_parent = null;
+		}
+		public void DetachAllChildren()
+		{
+			foreach (var child in this.m_children)
+			{
+				child.m_parent = null;
+			}
+
+			this.m_children.Clear();
 		}
 
 		public override Connection[] GetConnections()
@@ -379,6 +397,12 @@ namespace FBXSharp.Objective
 			}
 
 			return connections;
+		}
+
+		public override void Destroy()
+		{
+			this.DetachAllChildren();
+			base.Destroy();
 		}
 	}
 

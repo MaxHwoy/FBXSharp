@@ -167,5 +167,18 @@ namespace FBXSharp
 		public NullAttribute CreateNullAttribute() => this.AddObjectAndReturn(new NullAttribute(null, this));
 		public LightAttribute CreateLightAttribute() => this.AddObjectAndReturn(new LightAttribute(null, this));
 		public CameraAttribute CreateCameraAttribute() => this.AddObjectAndReturn(new CameraAttribute(null, this));
+
+		public void DestroyFBXObject(FBXObject @object)
+		{
+			if (@object is null)
+			{
+				return;
+			}
+
+			if (this.m_objects.Remove(@object))
+			{
+				@object.Destroy();
+			}
+		}
 	}
 }

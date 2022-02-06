@@ -121,16 +121,19 @@ namespace FBXSharp.Objective
 		{
 			this.m_channels = new List<Channel>();
 			this.m_readonly = new ReadOnlyCollection<Channel>(this.m_channels);
+			this.m_shadingModel = "Phong";
+			this.MultiLayer = false; // ??
+
+			if (element is null)
+			{
+				return;
+			}
 
 			var shading = element.FindChild("ShadingModel");
 
 			if (!(shading is null) && shading.Attributes.Length > 0 && shading.Attributes[0].Type == IElementAttributeType.String)
 			{
 				this.m_shadingModel = shading.Attributes[0].GetElementValue().ToString() ?? String.Empty;
-			}
-			else
-			{
-				this.m_shadingModel = String.Empty;
 			}
 
 			var multi = element.FindChild("MultiLayer");

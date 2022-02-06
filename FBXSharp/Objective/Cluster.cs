@@ -15,9 +15,12 @@ namespace FBXSharp.Objective
 
 		internal Cluster(IElement element, IScene scene) : base(element, scene)
 		{
+			if (element is null)
+			{
+				return;
+			}
+
 			var transformLink = element.FindChild("TransformLink");
-
-
 
 			var transform = element.FindChild("Transform");
 

@@ -24,6 +24,8 @@ namespace FBXSharp
 		private readonly ReadOnlyCollection<TakeInfo> m_readonlyTakeInfos;
 		private readonly ReadOnlyCollection<TemplateObject> m_readonlyTemplates;
 
+		public Root RootNode => this.m_root;
+
 		public FBXObject Root => this.m_root;
 
 		public GlobalSettings Settings => this.m_settings;

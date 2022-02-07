@@ -171,9 +171,9 @@ namespace FBXSharp.Objective
 
 		private IElement ChannelToElement(in Channel channel)
 		{
-			var hasWs = channel.Size == ComponentType.Double4 ? 1 : 0;
+			var hasWs = (channel.Size == ComponentType.Double4 && channel.Type != ChannelType.Color) ? 1 : 0;
+			var names = default((string elemName, string arrayName, string weightName));
 			var array = default(double[]);
-			var names = default((string, string, string));
 
 			switch (channel.Type)
 			{
@@ -184,12 +184,19 @@ namespace FBXSharp.Objective
 				case ChannelType.TexCoord: names = ("LayerElementUV", "UV", String.Empty); break;
 			}
 
-			switch (channel.Size)
+			if (hasWs != 0)
 			{
-				case ComponentType.Double: array = ElementaryFactory.DeepGenericCopy<double, double>(channel.Buffer as double[]); break;
-				case ComponentType.Double2: array = ElementaryFactory.VtoDArray<Vector2, Vector2>(channel.Buffer as Vector2[]); break;
-				case ComponentType.Double3: array = ElementaryFactory.VtoDArray<Vector3, Vector3>(channel.Buffer as Vector3[]); break;
-				case ComponentType.Double4: array = ElementaryFactory.VtoDArray<Vector4, Vector3>(channel.Buffer as Vector4[]); break;
+				array = ElementaryFactory.VtoDArray<Vector4, Vector3>(channel.Buffer as Vector4[]);
+			}
+			else
+			{
+				switch (channel.Size)
+				{
+					case ComponentType.Double: array = ElementaryFactory.DeepGenericCopy<double, double>(channel.Buffer as double[]); break;
+					case ComponentType.Double2: array = ElementaryFactory.VtoDArray<Vector2, Vector2>(channel.Buffer as Vector2[]); break;
+					case ComponentType.Double3: array = ElementaryFactory.VtoDArray<Vector3, Vector3>(channel.Buffer as Vector3[]); break;
+					case ComponentType.Double4: array = ElementaryFactory.VtoDArray<Vector4, Vector4>(channel.Buffer as Vector4[]); break;
+				}
 			}
 
 			var elements = new IElement[5 + hasWs];
@@ -198,9 +205,9 @@ namespace FBXSharp.Objective
 			elements[1] = Element.WithAttribute("Name", ElementaryFactory.GetElementAttribute(channel.Name));
 			elements[2] = Element.WithAttribute("MappingInformationType", ElementaryFactory.GetElementAttribute("ByPolygonVertex"));
 			elements[3] = Element.WithAttribute("ReferenceInformationType", ElementaryFactory.GetElementAttribute("Direct"));
-			elements[4] = Element.WithAttribute(names.Item2, ElementaryFactory.GetElementAttribute(array));
+			elements[4] = Element.WithAttribute(names.arrayName, ElementaryFactory.GetElementAttribute(array));
 
-			if (channel.Size == ComponentType.Double4)
+			if (hasWs != 0)
 			{
 				var buffer = channel.Buffer as Vector4[];
 				var weight = new double[buffer.Length];
@@ -210,7 +217,7 @@ namespace FBXSharp.Objective
 					weight[i] = buffer[i].W;
 				}
 
-				elements[5] = Element.WithAttribute(names.Item3, ElementaryFactory.GetElementAttribute(weight));
+				elements[5] = Element.WithAttribute(names.weightName, ElementaryFactory.GetElementAttribute(weight));
 			}
 
 			var attributes = new IElementAttribute[]
@@ -218,7 +225,7 @@ namespace FBXSharp.Objective
 				ElementaryFactory.GetElementAttribute(channel.Layer),
 			};
 
-			return new Element(names.Item1, elements, attributes);
+			return new Element(names.elemName, elements, attributes);
 		}
 
 		private IElement MateriaToElement()

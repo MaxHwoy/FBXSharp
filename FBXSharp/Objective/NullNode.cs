@@ -7,13 +7,11 @@ namespace FBXSharp.Objective
 	{
 		private NullAttribute m_attribute;
 
-		public override bool SupportsAttribute => true;
+		public static readonly FBXObjectType FType = FBXObjectType.Null;
 
-		public override NodeAttribute Attribute
-		{
-			get => this.m_attribute;
-			set => this.SetNodeAttribute(value);
-		}
+		public override FBXObjectType Type => NullNode.FType;
+
+		public override bool SupportsAttribute => true;
 
 		internal NullNode(IElement element, IScene scene) : base(element, scene)
 		{
@@ -33,12 +31,16 @@ namespace FBXSharp.Objective
 
 		public override IElement AsElement(bool binary)
 		{
-			return this.MakeElement("Null", binary);
+			return this.MakeElement("Model", binary);
 		}
 	}
 
 	public class NullAttribute : NodeAttribute
 	{
+		public static readonly FBXObjectType FType = FBXObjectType.Null;
+
+		public override FBXObjectType Type => NullAttribute.FType;
+
 		internal NullAttribute(IElement element, IScene scene) : base(element, scene)
 		{
 		}
@@ -50,7 +52,7 @@ namespace FBXSharp.Objective
 			elements[0] = Element.WithAttribute("TypeFlags", ElementaryFactory.GetElementAttribute("Null"));
 			elements[1] = this.BuildProperties70();
 
-			return new Element("NodeAttribute", elements, this.BuildAttributes("Null", binary));
+			return new Element(this.Class.ToString(), elements, this.BuildAttributes("NodeAttribute", this.Type.ToString(), binary));
 		}
 	}
 }

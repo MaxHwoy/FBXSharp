@@ -58,7 +58,7 @@ namespace FBXSharp.Objective
 			public override string ToString() => $"<{this.V0}, {this.V1}, {this.V2}, {this.V3}>";
 		}
 
-		private Video m_video;
+		private Clip m_video;
 		private string m_absolute;
 		private string m_relative;
 		private string m_media;
@@ -66,9 +66,13 @@ namespace FBXSharp.Objective
 
 		public static readonly FBXObjectType FType = FBXObjectType.Texture;
 
+		public static readonly FBXClassType FClass = FBXClassType.Texture;
+
 		public override FBXObjectType Type => Texture.FType;
 
-		public Video Data => this.m_video;
+		public override FBXClassType Class => Texture.FClass;
+
+		public Clip Data => this.m_video;
 
 		public string AbsolutePath => this.m_absolute;
 
@@ -202,7 +206,7 @@ namespace FBXSharp.Objective
 			}
 		}
 
-		internal void InternalSetVideo(Video video) => this.m_video = video;
+		internal void InternalSetVideo(Clip video) => this.m_video = video;
 		internal void InternalSetAbsolutePath(string path) => this.m_absolute = path;
 		internal void InternalSetRelativePath(string path) => this.m_relative = path;
 		internal void InternalSetMediaString(string media) => this.m_media = media;
@@ -218,6 +222,23 @@ namespace FBXSharp.Objective
 			this.m_relative = path;
 		}
 
+		public void SetClip(Clip clip)
+		{
+			if (clip is null)
+			{
+				this.m_video = null;
+
+				return;
+			}
+
+			if (clip.Scene != this.Scene)
+			{
+				throw new Exception("Clip should share same scene with texture");
+			}
+
+			this.m_video = clip;
+		}
+
 		public override Connection[] GetConnections()
 		{
 			if (this.m_video is null)
@@ -230,6 +251,14 @@ namespace FBXSharp.Objective
 				{
 					new Connection(Connection.ConnectionType.Object, this.m_video.GetHashCode(), this.GetHashCode()),
 				};
+			}
+		}
+
+		public override void ResolveLink(FBXObject linker, IElementAttribute attribute)
+		{
+			if (linker.Class == FBXClassType.Video && linker.Type == FBXObjectType.Clip)
+			{
+				this.SetClip(linker as Clip);
 			}
 		}
 
@@ -297,13 +326,13 @@ namespace FBXSharp.Objective
 				});
 			}
 
-			return new Element("Texture", elements, this.BuildAttributes(String.Empty, binary));
+			return new Element(this.Class.ToString(), elements, this.BuildAttributes("Texture", String.Empty, binary));
 		}
 	}
 
 	public class TextureBuilder : BuilderBase
 	{
-		private Video m_video;
+		private Clip m_video;
 		private string m_absolute;
 		private string m_relative;
 		private string m_media;
@@ -373,20 +402,16 @@ namespace FBXSharp.Objective
 			return this;
 		}
 
-		public TextureBuilder WithVideo(Video video)
+		public TextureBuilder WithVideo(Clip video)
 		{
-			if (video is null)
+			if (video is null || video.Scene == this.m_scene)
 			{
-				throw new ArgumentNullException("Video passed cannot be null");
+				this.m_video = video;
+
+				return this;
 			}
 
-			if (video.Scene != this.m_scene)
-			{
-				throw new ArgumentException("Video should share same scene as the texture");
-			}
-
-			this.m_video = video;
-			return this;
+			throw new ArgumentException("Video should share same scene as the texture");
 		}
 
 		public TextureBuilder WithAbsolutePath(string path)

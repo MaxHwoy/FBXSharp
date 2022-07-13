@@ -3,22 +3,40 @@ using System;
 
 namespace FBXSharp
 {
+	public enum TemplateCreationType
+	{
+		DontCreateIfDuplicated,
+		MergeIfExistingIsFound,
+		NewOverrideAnyExisting,
+	}
+
 	public class TemplateObject : FBXObject
 	{
 		public static readonly FBXObjectType FType = FBXObjectType.Template;
 
+		public static readonly FBXClassType FClass = FBXClassType.Template;
+
 		public override FBXObjectType Type => TemplateObject.FType;
 
-		public FBXObjectType OverridableType { get; }
+		public override FBXClassType Class => TemplateObject.FClass;
 
-		internal TemplateObject(FBXObjectType type, IElement element, IScene scene) : base(null, scene)
+		public FBXClassType OverridableType { get; }
+
+		public TemplateObject(FBXClassType type, IElement element, IScene scene) : base(null, scene)
 		{
 			this.OverridableType = type;
 
+			this.Initialize(element);
+		}
+
+		public void Initialize(IElement element)
+		{
 			if (element is null)
 			{
 				return;
 			}
+
+			this.RemoveAllProperties();
 
 			if (element.Attributes.Length > 0 && element.Attributes[0].Type == IElementAttributeType.String)
 			{

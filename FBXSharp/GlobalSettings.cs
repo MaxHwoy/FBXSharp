@@ -8,7 +8,11 @@ namespace FBXSharp
 	{
 		public static readonly FBXObjectType FType = FBXObjectType.GlobalSettings;
 
+		public static readonly FBXClassType FClass = FBXClassType.GlobalSettings;
+
 		public override FBXObjectType Type => GlobalSettings.FType;
+
+		public override FBXClassType Class => GlobalSettings.FClass;
 
 		public int? UpAxis
 		{

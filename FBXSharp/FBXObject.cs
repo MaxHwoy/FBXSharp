@@ -9,46 +9,68 @@ namespace FBXSharp
 	public enum FBXObjectType : int
 	{
 		Root,
-		Video,
+		Clip,
 		Texture,
 		Material,
 		Geometry,
 		Shape,
 		Model,
-		NodeAttribute,
-		Cluster,
+		Mesh,
+		Null,
+		LimbNode,
+		Light,
+		Camera,
+		BindPose,
 		Skin,
+		Cluster,
 		BlendShape,
 		BlendShapeChannel,
 		AnimationStack,
 		AnimationLayer,
 		AnimationCurve,
 		AnimationCurveNode,
-		Pose,
-		Deformer,
 		GlobalSettings,
 		Template,
+	}
+
+	public enum FBXClassType : int
+	{
+		Video,
+		Texture,
+		Material,
+		Geometry,
+		Model,
+		NodeAttribute,
+		Pose,
+		Deformer,
+		AnimationStack,
+		AnimationLayer,
+		AnimationCurve,
+		AnimationCurveNode,
+		GlobalSettings,
+		Template,
+		Count,
 	}
 
 	public abstract class FBXObject
 	{
 		private readonly List<IElementProperty> m_properties;
-		private readonly ReadOnlyCollection<IElementProperty> m_readProps;
 		private IScene m_scene;
 
 		public abstract FBXObjectType Type { get; }
+
+		public abstract FBXClassType Class { get; }
 
 		public IScene Scene => this.m_scene;
 
 		public string Name { get; set; }
 
-		public ReadOnlyCollection<IElementProperty> Properties => this.m_readProps;
+		public IReadOnlyList<IElementProperty> Properties => this.m_properties;
 
-		internal FBXObject(IElement element, IScene scene)
+		public FBXObject(IElement element, IScene scene)
 		{
 			this.m_scene = scene;
 			this.m_properties = new List<IElementProperty>();
-			this.m_readProps = new ReadOnlyCollection<IElementProperty>(this.m_properties);
 
 			if (element is null)
 			{
@@ -91,15 +113,15 @@ namespace FBXSharp
 			}
 		}
 
-		protected IElementAttribute[] BuildAttributes(string type, bool binary)
+		protected IElementAttribute[] BuildAttributes(string className, string typeName, bool binary)
 		{
 			if (binary)
 			{
 				return new IElementAttribute[3]
 				{
 					ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
-					ElementaryFactory.GetElementAttribute($"{this.Name}\x00\x01{this.Type}"),
-					ElementaryFactory.GetElementAttribute(type),
+					ElementaryFactory.GetElementAttribute($"{this.Name}\x00\x01{className}"),
+					ElementaryFactory.GetElementAttribute(typeName ?? String.Empty),
 				};
 			}
 			else
@@ -107,8 +129,8 @@ namespace FBXSharp
 				return new IElementAttribute[3]
 				{
 					ElementaryFactory.GetElementAttribute((long)this.GetHashCode()),
-					ElementaryFactory.GetElementAttribute($"{this.Name}::{this.Type}"),
-					ElementaryFactory.GetElementAttribute(type),
+					ElementaryFactory.GetElementAttribute($"{this.Name}::{this.Class}"),
+					ElementaryFactory.GetElementAttribute(typeName ?? String.Empty),
 				};
 			}
 		}
@@ -313,7 +335,7 @@ namespace FBXSharp
 
 			if (checkTemplate && property is null && this.Type != FBXObjectType.Template)
 			{
-				property = this.Scene.GetTemplateObject(this.Type)?.GetProperty(name, false);
+				property = this.Scene.GetTemplateObject(this.Class)?.GetProperty(name, false);
 			}
 
 			return property;
@@ -353,6 +375,10 @@ namespace FBXSharp
 		public void RemoveAllProperties() => this.m_properties.Clear();
 
 		public virtual Connection[] GetConnections() => Array.Empty<Connection>();
+
+		public virtual void ResolveLink(FBXObject linker, IElementAttribute attribute)
+		{
+		}
 
 		public virtual void Destroy()
 		{

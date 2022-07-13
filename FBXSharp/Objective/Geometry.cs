@@ -66,11 +66,14 @@ namespace FBXSharp.Objective
 		private int[][] m_indices;
 		private SubMesh[] m_subMeshes;
 		private readonly List<Channel> m_channels;
-		private readonly ReadOnlyCollection<Channel> m_readonly;
 
-		public static readonly FBXObjectType FType = FBXObjectType.Geometry;
+		public static readonly FBXObjectType FType = FBXObjectType.Mesh;
+
+		public static readonly FBXClassType FClass = FBXClassType.Geometry;
 
 		public override FBXObjectType Type => Geometry.FType;
+
+		public override FBXClassType Class => Geometry.FClass;
 
 		public Vector3[] Vertices => this.m_vertices;
 
@@ -80,7 +83,7 @@ namespace FBXSharp.Objective
 
 		public int IndexCount => this.InternalGetIndexCount();
 
-		public ReadOnlyCollection<Channel> Channels => this.m_readonly;
+		public IReadOnlyList<Channel> Channels => this.m_channels;
 
 		internal Geometry(IElement element, IScene scene) : base(element, scene)
 		{
@@ -88,7 +91,6 @@ namespace FBXSharp.Objective
 			this.m_indices = Array.Empty<int[]>();
 			this.m_subMeshes = Array.Empty<SubMesh>();
 			this.m_channels = new List<Channel>();
-			this.m_readonly = new ReadOnlyCollection<Channel>(this.m_channels);
 		}
 
 		private int InternalGetIndexCount()
@@ -102,12 +104,6 @@ namespace FBXSharp.Objective
 
 			return result;
 		}
-
-		internal void InternalSetVertices(Vector3[] vertices) => this.m_vertices = vertices;
-		internal void InternalSetIndices(int[][] indices) => this.m_indices = indices;
-		internal void InternalSetSubMeshes(SubMesh[] subMeshes) => this.m_subMeshes = subMeshes;
-		internal void InternalSetChannel(in Channel channel) => this.m_channels.Add(channel);
-		internal void InternalSortChannels() => this.m_channels.Sort(Geometry.ChannelSorter);
 
 		private static int ChannelSorter(Channel a, Channel b)
 		{
@@ -137,6 +133,12 @@ namespace FBXSharp.Objective
 				}
 			}
 		}
+
+		internal void InternalSetVertices(Vector3[] vertices) => this.m_vertices = vertices;
+		internal void InternalSetIndices(int[][] indices) => this.m_indices = indices;
+		internal void InternalSetSubMeshes(SubMesh[] subMeshes) => this.m_subMeshes = subMeshes;
+		internal void InternalSetChannel(in Channel channel) => this.m_channels.Add(channel);
+		internal void InternalSortChannels() => this.m_channels.Sort(Geometry.ChannelSorter);
 
 		private int[] RecalculateEdges()
 		{
@@ -357,7 +359,7 @@ namespace FBXSharp.Objective
 				this.m_channels.RemoveAt(this.m_channels.Count - 1);
 			}
 
-			return new Element("Geometry", elements, this.BuildAttributes("Mesh", binary));
+			return new Element(this.Class.ToString(), elements, this.BuildAttributes("Geometry", this.Type.ToString(), binary));
 		}
 	}
 
@@ -391,17 +393,49 @@ namespace FBXSharp.Objective
 			geometry.InternalSetIndices(this.m_polygons.ToArray());
 			geometry.InternalSetSubMeshes(this.m_subMeshes.ToArray());
 
-			foreach (var channel in this.m_channels)
+			int indexCount = geometry.IndexCount;
+
+			for (int i = 0; i < this.m_channels.Count; ++i)
 			{
-				geometry.InternalSetChannel(channel);
+				var channel = this.m_channels[i];
+
+				if (channel.Buffer.Length == indexCount)
+				{
+					geometry.InternalSetChannel(channel);
+				}
+				else
+				{
+					Array array;
+
+					switch (channel.Size)
+					{
+						case Geometry.ComponentType.Int: array = GeometryBuilder.Resize(channel.Buffer as int[], indexCount); break;
+						case Geometry.ComponentType.Double: array = GeometryBuilder.Resize(channel.Buffer as double[], indexCount); break;
+						case Geometry.ComponentType.Double2: array = GeometryBuilder.Resize(channel.Buffer as Vector2[], indexCount); break;
+						case Geometry.ComponentType.Double3: array = GeometryBuilder.Resize(channel.Buffer as Vector3[], indexCount); break;
+						case Geometry.ComponentType.Double4: array = GeometryBuilder.Resize(channel.Buffer as Vector4[], indexCount); break;
+						default: array = null; break;
+					}
+
+					geometry.InternalSetChannel(new Geometry.Channel(channel.Layer, channel.Name, channel.Type, channel.Size, array));
+				}
 			}
 
-			foreach (var property in this.m_properties)
+			for (int i = 0; i < this.m_properties.Count; ++i)
 			{
-				geometry.AddProperty(property);
+				geometry.AddProperty(this.m_properties[i]);
 			}
+
+			geometry.InternalSortChannels();
 
 			return geometry;
+		}
+
+		private static T[] Resize<T>(T[] array, int size)
+		{
+			Array.Resize(ref array, size);
+
+			return array;
 		}
 
 		public GeometryBuilder WithName(string name)

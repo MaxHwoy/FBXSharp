@@ -5,40 +5,28 @@ namespace FBXSharp.Objective
 {
 	public class Light : Model
 	{
-		private LightAttribute m_attribute;
+		public static readonly FBXObjectType FType = FBXObjectType.Light;
+
+		public override FBXObjectType Type => Light.FType;
 
 		public override bool SupportsAttribute => true;
-
-		public override NodeAttribute Attribute
-		{
-			get => this.m_attribute;
-			set => this.SetNodeAttribute(value);
-		}
 
 		internal Light(IElement element, IScene scene) : base(element, scene)
 		{
 		}
 
-		private void SetNodeAttribute(NodeAttribute attribute)
-		{
-			if (attribute is LightAttribute light)
-			{
-				this.m_attribute = light;
-			}
-			else
-			{
-				throw new ArgumentException("Node Attribute passed should be of LightAttribute type");
-			}
-		}
-
 		public override IElement AsElement(bool binary)
 		{
-			return this.MakeElement("Light", binary);
+			return this.MakeElement("Model", binary);
 		}
 	}
 
 	public class LightAttribute : NodeAttribute
 	{
+		public static readonly FBXObjectType FType = FBXObjectType.Light;
+
+		public override FBXObjectType Type => LightAttribute.FType;
+
 		internal LightAttribute(IElement element, IScene scene) : base(element, scene)
 		{
 		}
@@ -51,7 +39,7 @@ namespace FBXSharp.Objective
 			elements[1] = Element.WithAttribute("GeometryVersion", ElementaryFactory.GetElementAttribute(124));
 			elements[2] = this.BuildProperties70();
 
-			return new Element("NodeAttribute", elements, this.BuildAttributes("Light", binary));
+			return new Element(this.Class.ToString(), elements, this.BuildAttributes("NodeAttribute", this.Type.ToString(), binary));
 		}
 	}
 }

@@ -3,7 +3,7 @@ using System;
 
 namespace FBXSharp.Objective
 {
-	public class Video : FBXObject
+	public class Clip : FBXObject
 	{
 		public enum ImageType
 		{
@@ -21,9 +21,13 @@ namespace FBXSharp.Objective
 		private bool m_useMipMaps;
 		private ImageType m_image;
 
-		public static readonly FBXObjectType FType = FBXObjectType.Video;
+		public static readonly FBXObjectType FType = FBXObjectType.Clip;
 
-		public override FBXObjectType Type => Video.FType;
+		public static readonly FBXClassType FClass = FBXClassType.Video;
+
+		public override FBXObjectType Type => Clip.FType;
+
+		public override FBXClassType Class => Clip.FClass;
 
 		public ImageType Image => this.m_image;
 
@@ -47,7 +51,7 @@ namespace FBXSharp.Objective
 			set => this.InternalSetReference<string>(nameof(this.RelPath), IElementPropertyType.String, value, "KString", "XRefUrl");
 		}
 
-		internal Video(IElement element, IScene scene) : base(element, scene)
+		internal Clip(IElement element, IScene scene) : base(element, scene)
 		{
 			this.m_image = ImageType.Other;
 			this.m_absolute = String.Empty;
@@ -64,7 +68,7 @@ namespace FBXSharp.Objective
 			if (!(content is null) && content.Attributes.Length > 0 && content.Attributes[0].Type == IElementAttributeType.Binary)
 			{
 				this.m_content = content.Attributes[0].GetElementValue() as byte[];
-				this.m_image = Video.IsImage(this.m_content);
+				this.m_image = Clip.IsImage(this.m_content);
 			}
 
 			var absolute = element.FindChild("Filename");
@@ -106,7 +110,7 @@ namespace FBXSharp.Objective
 		public void SetContent(byte[] content)
 		{
 			this.m_content = content ?? Array.Empty<byte>();
-			this.m_image = Video.IsImage(this.m_content);
+			this.m_image = Clip.IsImage(this.m_content);
 			this.m_useMipMaps = this.m_image == ImageType.DDS;
 		}
 
@@ -125,7 +129,7 @@ namespace FBXSharp.Objective
 				elements[5] = Element.WithAttribute("Content", ElementaryFactory.GetElementAttribute(this.m_content));
 			}
 
-			return new Element("Video", elements, this.BuildAttributes("Clip", binary));
+			return new Element(this.Class.ToString(), elements, this.BuildAttributes("Video", this.Type.ToString(), binary));
 		}
 
 		private static bool IsPngImage(byte[] data)
@@ -163,27 +167,27 @@ namespace FBXSharp.Objective
 				return ImageType.Other;
 			}
 
-			if (Video.IsDdsImage(data))
+			if (Clip.IsDdsImage(data))
 			{
 				return ImageType.DDS;
 			}
 
-			if (Video.IsJpgImage(data))
+			if (Clip.IsJpgImage(data))
 			{
 				return ImageType.JPG;
 			}
 
-			if (Video.IsPngImage(data))
+			if (Clip.IsPngImage(data))
 			{
 				return ImageType.PNG;
 			}
 
-			if (Video.IsWebpImage(data))
+			if (Clip.IsWebpImage(data))
 			{
 				return ImageType.WEBP;
 			}
 
-			if (Video.IsKtx2Image(data))
+			if (Clip.IsKtx2Image(data))
 			{
 				return ImageType.KTX2;
 			}

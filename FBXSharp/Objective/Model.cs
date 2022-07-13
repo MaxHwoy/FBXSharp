@@ -34,15 +34,20 @@ namespace FBXSharp.Objective
 
 		private readonly List<Model> m_children;
 		private readonly ReadOnlyCollection<Model> m_readonly;
+		private NodeAttribute m_attribute;
 		private Model m_parent;
 
-		public static readonly FBXObjectType FType = FBXObjectType.Model;
+		public static readonly FBXClassType FClass = FBXClassType.Model;
 
-		public override FBXObjectType Type => Model.FType;
+		public override FBXClassType Class => Model.FClass;
 
 		public abstract bool SupportsAttribute { get; }
 
-		public abstract NodeAttribute Attribute { get; set; }
+		public NodeAttribute Attribute
+		{
+			get => this.InternalGetNodeAttribute();
+			set => this.InternalSetNodeAttribute(value);
+		}
 
 		public Model Parent => this.m_parent;
 
@@ -177,11 +182,37 @@ namespace FBXSharp.Objective
 			}
 		}
 
+		private NodeAttribute InternalGetNodeAttribute()
+		{
+			if (!this.SupportsAttribute)
+			{
+				throw new NotSupportedException("Model does not support node attributes");
+			}
+
+			return this.m_attribute;
+		}
+		
+		private void InternalSetNodeAttribute(NodeAttribute attribute)
+		{
+			if (!this.SupportsAttribute)
+			{
+				throw new NotSupportedException("Model does not support node attributes");
+			}
+
+			if (attribute.Type != this.Type)
+			{
+				throw new Exception("Node attribute should have same type as the Model");
+			}
+
+			this.m_attribute = attribute;
+		}
+
 		internal void InternalSetChild(Model child)
 		{
 			this.m_children.Add(child);
 			child.InternalSetParent(this);
 		}
+		
 		internal void InternalSetParent(Model parent)
 		{
 			this.m_parent = parent;
@@ -218,7 +249,7 @@ namespace FBXSharp.Objective
 			return t * roff * rpip * rpre * r * post * rpii * soff * spip * s * spii;
 		}
 
-		protected IElement MakeElement(string type, bool binary)
+		protected IElement MakeElement(string className, bool binary)
 		{
 			var elements = new IElement[6];
 
@@ -240,7 +271,7 @@ namespace FBXSharp.Objective
 			elements[4] = Element.WithAttribute("Shading", ElementaryFactory.GetElementAttribute(shading));
 			elements[5] = Element.WithAttribute("Culling", ElementaryFactory.GetElementAttribute(this.Culling.ToString()));
 
-			return new Element("Model", elements, this.BuildAttributes(type, binary));
+			return new Element(this.Class.ToString(), elements, this.BuildAttributes(className, this.Type.ToString(), binary));
 		}
 
 		public Matrix4x4 GetLocalTransform()
@@ -399,6 +430,23 @@ namespace FBXSharp.Objective
 			return connections;
 		}
 
+		public override void ResolveLink(FBXObject linker, IElementAttribute attribute)
+		{
+			if (linker.Class == FBXClassType.Model)
+			{
+				this.AddChild(linker as Model);
+
+				return;
+			}
+
+			if (linker.Class == FBXClassType.NodeAttribute)
+			{
+				this.InternalSetNodeAttribute(linker as NodeAttribute);
+
+				return;
+			}
+		}
+
 		public override void Destroy()
 		{
 			this.DetachAllChildren();
@@ -408,9 +456,9 @@ namespace FBXSharp.Objective
 
 	public abstract class NodeAttribute : FBXObject
 	{
-		public static readonly FBXObjectType FType = FBXObjectType.NodeAttribute;
+		public static readonly FBXClassType FClass = FBXClassType.NodeAttribute;
 
-		public override FBXObjectType Type => NodeAttribute.FType;
+		public override FBXClassType Class => NodeAttribute.FClass;
 
 		internal NodeAttribute(IElement element, IScene scene) : base(element, scene)
 		{

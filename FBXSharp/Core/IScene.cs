@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace FBXSharp.Core
 {
@@ -6,14 +7,23 @@ namespace FBXSharp.Core
 	{
 		FBXObject Root { get; }
 		GlobalSettings Settings { get; }
-		ReadOnlyCollection<FBXObject> Objects { get; }
-		ReadOnlyCollection<TakeInfo> TakeInfos { get; }
-		ReadOnlyCollection<TemplateObject> Templates { get; }
+		IReadOnlyList<FBXObject> Objects { get; }
+		IReadOnlyList<TakeInfo> TakeInfos { get; }
+		IReadOnlyList<TemplateObject> Templates { get; }
+
+		TemplateObject CreateEmptyTemplate(FBXClassType classType, TemplateCreationType creationType);
+		TemplateObject CreatePredefinedTemplate(FBXClassType classType, TemplateCreationType creationType);
 
 		TemplateObject GetTemplateObject(string name);
-		TemplateObject GetTemplateObject(FBXObjectType objectType);
+		TemplateObject GetTemplateObject(FBXClassType classType);
 
-		FBXObject CreateFBXObject(FBXObjectType type);
+		void AddTakeInfo(TakeInfo takeInfo);
+		void RemoveTakeInfo(TakeInfo takeInfo);
+
+		FBXObject CreateFBXObject(FBXClassType classType, FBXObjectType objectType, IElement element);
 		void DestroyFBXObject(FBXObject @object);
+
+		IEnumerable<T> GetObjectsOfType<T>() where T : FBXObject;
+		IEnumerable<FBXObject> GetObjectsOfType(FBXClassType classType, FBXObjectType objectType);
 	}
 }

@@ -23,6 +23,14 @@ namespace FBXSharp.ValueTypes
 
 		public static Vector3 operator -(in Vector3 vector) => new Vector3(-vector.X, -vector.Y, -vector.Z);
 
+		public static bool operator ==(in Vector3 lhs, in Vector3 rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z;
+
+		public static bool operator !=(in Vector3 lhs, in Vector3 rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Z != rhs.Z;
+
+		public override bool Equals(object obj) => obj is Vector3 vector && this == vector;
+
+		public override int GetHashCode() => (this.X, this.Y, this.Z).GetHashCode();
+
 		public override string ToString() => $"<{this.X}, {this.Y}, {this.Z}>";
 	}
 }

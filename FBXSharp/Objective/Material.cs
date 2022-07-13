@@ -28,7 +28,11 @@ namespace FBXSharp.Objective
 
 		public static readonly FBXObjectType FType = FBXObjectType.Material;
 
+		public static readonly FBXClassType FClass = FBXClassType.Material;
+
 		public override FBXObjectType Type => Material.FType;
+
+		public override FBXClassType Class => Material.FClass;
 
 		public ReadOnlyCollection<Channel> Channels => this.m_readonly;
 
@@ -146,6 +150,53 @@ namespace FBXSharp.Objective
 
 		internal void InternalSetChannel(in Channel channel) => this.m_channels.Add(channel);
 
+		public void AddChannel(Channel channel)
+		{
+			this.AddChannelAt(channel, this.m_channels.Count);
+		}
+		public void RemoveChannel(Channel channel)
+		{
+			this.m_channels.Remove(channel);
+		}
+		public void AddChannelAt(Channel channel, int index)
+		{
+			if (String.IsNullOrEmpty(channel.Name))
+			{
+				throw new ArgumentNullException("Channel name cannot be null or empty");
+			}
+
+			if (channel.Texture is null)
+			{
+				throw new ArgumentNullException("Texture in the channel passed cannot be null");
+			}
+
+			if (channel.Texture.Scene != this.Scene)
+			{
+				throw new Exception("Texture in the channel passed should share same scene with material");
+			}
+
+			if (index < 0 || index > this.m_channels.Count)
+			{
+				throw new ArgumentOutOfRangeException("Index should be in range 0 to channel count inclusively");
+			}
+
+			if (this.m_channels.FindIndex(_ => _.Name == channel.Name) >= 0)
+			{
+				return;
+			}
+
+			this.m_channels.Insert(index, channel);
+		}
+		public void RemoveChannelAt(int index)
+		{
+			if (index < 0 || index >= this.m_channels.Count)
+			{
+				throw new ArgumentOutOfRangeException("Index should be in 0 to channel count range");
+			}
+
+			this.m_channels.RemoveAt(index);
+		}
+
 		public override Connection[] GetConnections()
 		{
 			if (this.m_channels.Count == 0)
@@ -169,6 +220,19 @@ namespace FBXSharp.Objective
 			return connections;
 		}
 
+		public override void ResolveLink(FBXObject linker, IElementAttribute attribute)
+		{
+			if (linker.Class == FBXClassType.Texture && linker.Type == FBXObjectType.Texture)
+			{
+				if (attribute is null || attribute.Type != IElementAttributeType.String)
+				{
+					return;
+				}
+
+				this.AddChannel(new Channel(attribute.GetElementValue().ToString(), linker as Texture));
+			}
+		}
+
 		public override IElement AsElement(bool binary)
 		{
 			var elements = new IElement[4];
@@ -178,7 +242,7 @@ namespace FBXSharp.Objective
 			elements[2] = Element.WithAttribute("MultiLayer", ElementaryFactory.GetElementAttribute(this.MultiLayer ? 1 : 0));
 			elements[3] = this.BuildProperties70();
 
-			return new Element("Material", elements, this.BuildAttributes(String.Empty, binary));
+			return new Element(this.Class.ToString(), elements, this.BuildAttributes("Material", String.Empty, binary));
 		}
 	}
 
@@ -297,6 +361,11 @@ namespace FBXSharp.Objective
 			if (channel.Texture is null)
 			{
 				throw new ArgumentNullException($"Channel {channel.Name} cannot have null texture");
+			}
+
+			if (channel.Texture.Scene != this.m_scene)
+			{
+				throw new Exception("Texture should share same scene with material");
 			}
 
 			this.m_channels.Add(channel);

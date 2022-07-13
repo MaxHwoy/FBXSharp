@@ -10,7 +10,11 @@ namespace FBXSharp.Objective
 
 		public static readonly FBXObjectType FType = FBXObjectType.AnimationCurve;
 
+		public static readonly FBXClassType FClass = FBXClassType.AnimationCurve;
+
 		public override FBXObjectType Type => AnimationCurve.FType;
+
+		public override FBXClassType Class => AnimationCurve.FClass;
 
 		public long[] KeyTimes
 		{
@@ -55,6 +59,9 @@ namespace FBXSharp.Objective
 			}
 		}
 
-		public override IElement AsElement(bool binary) => throw new NotImplementedException();
+		public override IElement AsElement(bool binary)
+		{
+			return new Element(this.Class.ToString(), null, this.BuildAttributes("AnimCurve", String.Empty, binary)); // #TODO
+		}
 	}
 }

@@ -10,17 +10,15 @@ namespace FBXSharp.Objective
 		private readonly List<Material> m_materials;
 		private readonly ReadOnlyCollection<Material> m_readonly;
 		private Geometry m_geometry;
-		private Pose m_pose;
+		private BindPose m_pose;
+
+		public static readonly FBXObjectType FType = FBXObjectType.Mesh;
+
+		public override FBXObjectType Type => Mesh.FType;
 
 		public override bool SupportsAttribute => false;
 
-		public override NodeAttribute Attribute
-		{
-			get => throw new NotSupportedException("Meshes do not support node attributes");
-			set => throw new NotSupportedException("Meshes do not support node attributes");
-		}
-
-		public Pose Pose => this.m_pose;
+		public BindPose Pose => this.m_pose;
 
 		public Geometry Geometry => this.m_geometry;
 
@@ -32,7 +30,7 @@ namespace FBXSharp.Objective
 			this.m_readonly = new ReadOnlyCollection<Material>(this.m_materials);
 		}
 
-		internal void InternalSetPose(Pose pose) => this.m_pose = pose;
+		internal void InternalSetBindPose(BindPose pose) => this.m_pose = pose;
 		internal void InternalSetGeometry(Geometry geometry) => this.m_geometry = geometry;
 		internal void InternalSetMaterial(Material material) => this.m_materials.Add(material);
 
@@ -138,9 +136,36 @@ namespace FBXSharp.Objective
 			return connections;
 		}
 
+		public override void ResolveLink(FBXObject linker, IElementAttribute attribute)
+		{
+			if (linker.Class == FBXClassType.Model)
+			{
+				this.AddChild(linker as Model);
+
+				return;
+			}
+
+			if (linker.Class == FBXClassType.Geometry)
+			{
+				if (linker.Type == FBXObjectType.Mesh)
+				{
+					this.SetGeometry(linker as Geometry);
+
+					return;
+				}
+			}
+
+			if (linker.Class == FBXClassType.Material)
+			{
+				this.AddMaterial(linker as Material);
+
+				return;
+			}
+		}
+
 		public override IElement AsElement(bool binary)
 		{
-			return this.MakeElement("Mesh", binary);
+			return this.MakeElement("Model", binary);
 		}
 	}
 }

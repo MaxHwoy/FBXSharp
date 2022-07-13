@@ -956,138 +956,6 @@ namespace FBXSharp
 			}
 		}
 
-		private static FBXObject ParseGeometryIndirect(IElement element, Scene scene, LoadFlags flags)
-		{
-			if ((flags & LoadFlags.IgnoreGeometry) != 0 || element.Attributes.Length < 3)
-			{
-				return null;
-			}
-
-			var property = element.Attributes[element.Attributes.Length - 1];
-
-			if (property.Type != IElementAttributeType.String)
-			{
-				return null;
-			}
-
-			if (property.GetElementValue().ToString() == "Mesh")
-			{
-				var geometry = new Geometry(element, scene);
-
-				FBXImporter.InternalPrepareGeometry(element, geometry, flags);
-
-				return geometry;
-			}
-
-			if (property.GetElementValue().ToString() == "Shape")
-			{
-				return new Shape(element, scene);
-			}
-
-			return null;
-		}
-
-		private static FBXObject ParseDeformerIndirect(IElement element, Scene scene)
-		{
-			if (element.Attributes.Length < 3)
-			{
-				return null;
-			}
-
-			var property = element.Attributes[2];
-
-			if (property.Type != IElementAttributeType.String)
-			{
-				return null;
-			}
-
-			if (property.GetElementValue().ToString() == FBXObjectType.Cluster.ToString())
-			{
-				return new Cluster(element, scene);
-			}
-
-			if (property.GetElementValue().ToString() == FBXObjectType.Skin.ToString())
-			{
-				return new Skin(element, scene);
-			}
-
-			if (property.GetElementValue().ToString() == FBXObjectType.BlendShape.ToString())
-			{
-				return new BlendShape(element, scene);
-			}
-
-			if (property.GetElementValue().ToString() == FBXObjectType.BlendShapeChannel.ToString())
-			{
-				return new BlendShapeChannel(element, scene);
-			}
-
-			return null;
-		}
-
-		private static FBXObject ParseModelIndirect(IElement element, Scene scene)
-		{
-			if (element.Attributes.Length < 3)
-			{
-				return null;
-			}
-
-			var property = element.Attributes[2];
-
-			if (property.Type != IElementAttributeType.String)
-			{
-				return null;
-			}
-
-			if (property.GetElementValue().ToString() == "Mesh")
-			{
-				return new Mesh(element, scene);
-			}
-
-			if (property.GetElementValue().ToString() == "LimbNode")
-			{
-				return new LimbNode(element, scene);
-			}
-
-			if (property.GetElementValue().ToString() == "Camera")
-			{
-				return new Camera(element, scene);
-			}
-
-			if (property.GetElementValue().ToString() == "Light")
-			{
-				return new Light(element, scene);
-			}
-
-			return new NullNode(element, scene);
-		}
-
-		private static FBXObject ParseNodeAttributeIndirect(IElement element, Scene scene)
-		{
-			if (element.Attributes.Length < 3)
-			{
-				return null;
-			}
-
-			var property = element.Attributes[2];
-
-			if (property.Type != IElementAttributeType.String)
-			{
-				return null;
-			}
-
-			if (property.GetElementValue().ToString() == "Camera")
-			{
-				return new CameraAttribute(element, scene);
-			}
-
-			if (property.GetElementValue().ToString() == "Light")
-			{
-				return new LightAttribute(element, scene);
-			}
-
-			return new NullAttribute(element, scene);
-		}
-
 		private static void InternalPrepareGeometry(IElement element, Geometry geometry, LoadFlags flags)
 		{
 			var vertices = element.FindChild("Vertices");
@@ -1147,7 +1015,7 @@ namespace FBXSharp
 			}
 		}
 
-		private static void InternalPreloadVideoData(Scene scene, LoadFlags flags, string fbxPath)
+		private static void InternalPreloadClipData(IScene scene, LoadFlags flags, string fbxPath)
 		{
 			if ((flags & LoadFlags.LoadVideoFiles) == 0)
 			{
@@ -1164,32 +1032,27 @@ namespace FBXSharp
 				fbxPath = Path.GetDirectoryName(fbxPath);
 			}
 
-			foreach (var @object in scene.Objects)
+			foreach (var clip in scene.GetObjectsOfType<Clip>())
 			{
-				if (@object.Type == FBXObjectType.Video)
+				if (clip.Content.Length == 0)
 				{
-					var video = @object as Video;
+					var file = Path.GetFullPath(Path.Combine(fbxPath, clip.RelativePath));
 
-					if (video.Content.Length == 0)
+					if (File.Exists(file))
 					{
-						var file = Path.GetFullPath(Path.Combine(fbxPath, video.RelativePath));
-
-						if (File.Exists(file))
-						{
-							video.SetContent(File.ReadAllBytes(file));
-						}
+						clip.SetContent(File.ReadAllBytes(file));
 					}
 				}
 			}
 		}
 
-		private static IEnumerable<TemplateObject> ParseTemplates(Element root, Scene scene)
+		private static void ParseTemplates(Element root, IScene scene)
 		{
 			var definitions = root.FindChild("Definitions");
 			
 			if (definitions is null)
 			{
-				yield break;
+				return;
 			}
 
 			for (int i = 0; i < definitions.Children.Length; ++i)
@@ -1201,94 +1064,27 @@ namespace FBXSharp
 					continue;
 				}
 
-				var template = child.FindChild("PropertyTemplate");
+				var property = child.FindChild("PropertyTemplate");
 
-				if (child.Attributes.Length == 0 || child.Attributes[0].Type != IElementAttributeType.String || template is null)
+				if (child.Attributes.Length == 0 || child.Attributes[0].Type != IElementAttributeType.String || property is null)
 				{
 					continue;
 				}
 
-				if (Enum.TryParse(child.Attributes[0].GetElementValue().ToString(), out FBXObjectType type))
+				if (Enum.TryParse(child.Attributes[0].GetElementValue().ToString(), out FBXClassType type))
 				{
-					yield return new TemplateObject(type, template, scene);
+					scene.CreateEmptyTemplate(type, TemplateCreationType.NewOverrideAnyExisting).Initialize(property);
 				}
 			}
 		}
 
-		private static IEnumerable<Connection> ParseConnections(Element root)
-		{
-			var connections = root.FindChild("Connections");
-
-			if (connections is null)
-			{
-				yield break;
-			}
-
-			for (int i = 0; i < connections.Children.Length; ++i)
-			{
-				var connection = connections.Children[i];
-
-				if (connection is null || connection.Attributes.Length < 3)
-				{
-					throw new Exception($"Connection {i} is null or has less than 3 valid properties");
-				}
-
-				var first = connection.Attributes[0];
-				var second = connection.Attributes[1];
-				var third = connection.Attributes[2];
-
-				if (first is null || second is null || third is null)
-				{
-					throw new Exception($"Connection {i} property is null or invalid");
-				}
-
-				if (first.Type != IElementAttributeType.String ||
-					second.Type != IElementAttributeType.Int64 ||
-					third.Type != IElementAttributeType.Int64)
-				{
-					throw new Exception($"Connection {i} property is of invalid type");
-				}
-
-				var start = (long)second.GetElementValue();
-				var final = (long)third.GetElementValue();
-
-				switch (first.GetElementValue().ToString())
-				{
-					case "":
-						{
-							break;
-						}
-
-					case "OO":
-						{
-							yield return new Connection(Connection.ConnectionType.Object, start, final);
-							break;
-						}
-
-					case "OP":
-						{
-							if (connection.Attributes.Length < 4)
-							{
-								throw new Exception($"Encountered OP connection {i} without fourth property");
-							}
-
-							yield return new Connection(Connection.ConnectionType.Property, start, final, connection.Attributes[3]);
-							break;
-						}
-
-					default:
-						throw new Exception($"Not supported connection {i} type {first.GetElementValue()}");
-				}
-			}
-		}
-
-		private static IEnumerable<TakeInfo> ParseTakeInfos(Element root)
+		private static void ParseTakeInfos(Element root, IScene scene)
 		{
 			var takes = root.FindChild("Takes");
 
 			if (takes is null)
 			{
-				yield break;
+				return;
 			}
 
 			for (int i = 0; i < takes.Children.Length; ++i)
@@ -1380,19 +1176,86 @@ namespace FBXSharp
 					refTo = MathExtensions.FBXTimeToSeconds((long)attribute2.GetElementValue());
 				}
 
-				yield return new TakeInfo(nameProp, filename, localFrom, localTo, refFrom, refTo);
+				scene.AddTakeInfo(new TakeInfo(nameProp, filename, localFrom, localTo, refFrom, refTo));
 			}
 		}
 
-		private static Scene ParseObjects(Element root, Connection[] connections, LoadFlags flags)
+		private static IEnumerable<Connection> ParseConnections(Element root)
 		{
-			var scene = new Scene();
+			var connections = root.FindChild("Connections");
+
+			if (connections is null)
+			{
+				yield break;
+			}
+
+			for (int i = 0; i < connections.Children.Length; ++i)
+			{
+				var connection = connections.Children[i];
+
+				if (connection is null || connection.Attributes.Length < 3)
+				{
+					throw new Exception($"Connection {i} is null or has less than 3 valid properties");
+				}
+
+				var p1st = connection.Attributes[0];
+				var p2nd = connection.Attributes[1];
+				var p3rd = connection.Attributes[2];
+
+				if (p1st is null || p2nd is null || p3rd is null)
+				{
+					throw new Exception($"Connection {i} property is null or invalid");
+				}
+
+				if (p1st.Type != IElementAttributeType.String ||
+					p2nd.Type != IElementAttributeType.Int64 ||
+					p3rd.Type != IElementAttributeType.Int64)
+				{
+					throw new Exception($"Connection {i} property is of invalid type");
+				}
+
+				var start = (long)p2nd.GetElementValue();
+				var final = (long)p3rd.GetElementValue();
+
+				switch (p1st.GetElementValue().ToString())
+				{
+					case "":
+						{
+							break;
+						}
+
+					case "OO":
+						{
+							yield return new Connection(Connection.ConnectionType.Object, start, final);
+							break;
+						}
+
+					case "OP":
+						{
+							if (connection.Attributes.Length < 4)
+							{
+								throw new Exception($"Encountered OP connection {i} without fourth property");
+							}
+
+							yield return new Connection(Connection.ConnectionType.Property, start, final, connection.Attributes[3]);
+							break;
+						}
+
+					default:
+						throw new Exception($"Not supported connection {i} type {p1st.GetElementValue()}");
+				}
+			}
+		}
+
+		private static T ParseObjects<T>(Element root, Connection[] connections, LoadFlags flags) where T : IScene, new()
+		{
+			var scene = new T();
 
 			var allObjs = root.FindChild("Objects");
 
 			if (allObjs is null)
 			{
-				return new Scene();
+				return scene;
 			}
 
 			var element = new Dictionary<long, IElement>()
@@ -1430,147 +1293,53 @@ namespace FBXSharp
 					continue;
 				}
 
-				FBXObject fObject = null;
-
-				if (Enum.TryParse(pair.Value.Name, out FBXObjectType type))
+				if (Enum.TryParse(pair.Value.Name, out FBXClassType classType))
 				{
-					switch (type)
+					if (classType == FBXClassType.Geometry && (flags & LoadFlags.IgnoreGeometry) != 0)
 					{
-						case FBXObjectType.Geometry:
-							fObject = FBXImporter.ParseGeometryIndirect(pair.Value, scene, flags);
-							break;
-
-						case FBXObjectType.Material:
-							fObject = new Material(pair.Value, scene);
-							break;
-
-						case FBXObjectType.AnimationStack:
-							fObject = new AnimationStack(pair.Value, scene);
-							break;
-
-						case FBXObjectType.AnimationLayer:
-							fObject = new AnimationLayer(pair.Value, scene);
-							break;
-
-						case FBXObjectType.AnimationCurve:
-							fObject = new AnimationCurve(pair.Value, scene);
-							break;
-
-						case FBXObjectType.AnimationCurveNode:
-							fObject = new AnimationCurveNode(pair.Value, scene);
-							break;
-
-						case FBXObjectType.Deformer:
-							fObject = FBXImporter.ParseDeformerIndirect(pair.Value, scene);
-							break;
-
-						case FBXObjectType.NodeAttribute:
-							fObject = FBXImporter.ParseNodeAttributeIndirect(pair.Value, scene);
-							break;
-
-						case FBXObjectType.Model:
-							fObject = FBXImporter.ParseModelIndirect(pair.Value, scene);
-							break;
-
-						case FBXObjectType.Pose:
-							fObject = new Pose(pair.Value, scene);
-							break;
-
-						case FBXObjectType.Texture:
-							fObject = new Texture(pair.Value, scene);
-							break;
-
-						case FBXObjectType.Video:
-							fObject = new Video(pair.Value, scene);
-							break;
-
+						continue;
 					}
-				}
 
-				if (fObject is null)
-				{
-					continue;
-				}
+					if (classType == FBXClassType.Deformer && (flags & LoadFlags.IgnoreBlendShapes) != 0)
+					{
+						continue;
+					}
 
-				objects[pair.Key] = fObject;
+					if (pair.Value.Attributes.Length < 3 || pair.Value.Attributes[2].Type != IElementAttributeType.String)
+					{
+						continue;
+					}
+
+					if (!Enum.TryParse(pair.Value.Attributes[2].GetElementValue().ToString(), out FBXObjectType objectType))
+					{
+						if (!Enum.TryParse(pair.Value.Name, out objectType))
+						{
+							continue;
+						}
+					}
+
+					var @object = scene.CreateFBXObject(classType, objectType, pair.Value);
+
+					if (@object is null)
+					{
+						continue;
+					}
+
+					if (@object is Geometry geometry)
+					{
+						FBXImporter.InternalPrepareGeometry(pair.Value, geometry, flags); // special case for inbuilt geometry class
+					}
+
+					objects[pair.Key] = @object;
+				}
 			}
 
 			foreach (var connection in connections)
 			{
-				if (!objects.TryGetValue(connection.Source, out var src) ||
-					!objects.TryGetValue(connection.Destination, out var dst))
+				if (objects.TryGetValue(connection.Source, out var src) &&
+					objects.TryGetValue(connection.Destination, out var dst))
 				{
-					continue;
-				}
-
-				switch (dst.Type)
-				{
-					case FBXObjectType.Root:
-						{
-							if (src.Type == FBXObjectType.Model)
-							{
-								(dst as Root).InternalSetChild(src as Model);
-							}
-
-							break;
-						}
-
-					case FBXObjectType.Model:
-						{
-							var model = dst as Model;
-
-							if (src.Type == FBXObjectType.Model)
-							{
-								model.InternalSetChild(src as Model);
-							}
-							else if (src.Type == FBXObjectType.NodeAttribute && model.SupportsAttribute)
-							{
-								model.Attribute = src as NodeAttribute;
-							}
-							else if (src.Type == FBXObjectType.Geometry && model is Mesh geoMesh)
-							{
-								geoMesh.InternalSetGeometry(src as Geometry);
-							}
-							else if (src.Type == FBXObjectType.Material && model is Mesh matMesh)
-							{
-								matMesh.InternalSetMaterial(src as Material);
-							}
-
-							break;
-						}
-
-					case FBXObjectType.Material:
-						{
-							if (src.Type == FBXObjectType.Texture && connection.Property.GetElementValue() is string name)
-							{
-								(dst as Material).InternalSetChannel(new Material.Channel(name, src as Texture));
-							}
-
-							break;
-						}
-
-					case FBXObjectType.Texture:
-						{
-							if (src.Type == FBXObjectType.Video)
-							{
-								(dst as Texture).InternalSetVideo(src as Video);
-							}
-
-							break;
-						}
-
-					default:
-						{
-							break;
-						}
-				}
-			}
-
-			foreach (var @object in objects.Values)
-			{
-				if (@object.Type != FBXObjectType.Root)
-				{
-					scene.InternalAddObject(@object);
+					dst.ResolveLink(src, connection.Property);
 				}
 			}
 
@@ -1595,6 +1364,11 @@ namespace FBXSharp
 			int encode = cursor.Reader.ReadInt32();
 			var buffer = cursor.Reader.ReadBytes(cursor.Reader.ReadInt32());
 			var result = new T[length];
+
+			if (length == 0)
+			{
+				return result;
+			}
 
 			if (encode == 0)
 			{
@@ -1841,8 +1615,33 @@ namespace FBXSharp
 		}
 #endif
 
-		public Scene Load(in LoadSettings settings)
+		public T Load<T>(in LoadSettings settings) where T : IScene, new()
 		{
+			if (settings.Stream is null)
+			{
+				if (Path.HasExtension(settings.DataPath) && File.Exists(settings.DataPath))
+				{
+					using (var fs = File.OpenRead(settings.DataPath))
+					{
+						return this.Load<T>(new LoadSettings()
+						{
+							DataPath = settings.DataPath,
+							Stream = fs,
+							Position = 0,
+							Length = fs.Length,
+							Flags = settings.Flags,
+						});
+					}
+				}
+
+				throw new Exception("Stream or file to read from are not given");
+			}
+
+			if (!settings.Stream.CanRead)
+			{
+				throw new Exception("Cannot read from the stream provided");
+			}
+
 			using (var br = new BinaryReader(settings.Stream, Encoding.UTF8, true))
 			{
 				var cursor = new Cursor(settings.Position, settings.Position + settings.Length, br);
@@ -1866,18 +1665,16 @@ namespace FBXSharp
 				}
 
 				var connections = FBXImporter.ParseConnections(root).ToArray();
-				var takeInfos = FBXImporter.ParseTakeInfos(root).ToArray();
-				var result = FBXImporter.ParseObjects(root, connections, settings.Flags);
-				var templates = FBXImporter.ParseTemplates(root, result).ToArray();
+				var scene = FBXImporter.ParseObjects<T>(root, connections, settings.Flags);
+				
+				FBXImporter.ParseTakeInfos(root, scene);
+				FBXImporter.ParseTemplates(root, scene);
 
-				result.InternalSetTakeInfos(takeInfos);
-				result.InternalSetTemplates(templates);
-
-				FBXImporter.InternalPreloadVideoData(result, settings.Flags, settings.DataPath);
+				FBXImporter.InternalPreloadClipData(scene, settings.Flags, settings.DataPath);
 
 				br.BaseStream.Position = cursor.End;
 
-				return result;
+				return scene;
 			}
 		}
 	}

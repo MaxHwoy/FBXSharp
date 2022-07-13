@@ -7,7 +7,11 @@ namespace FBXSharp.Objective
 	{
 		public static readonly FBXObjectType FType = FBXObjectType.Cluster;
 
+		public static readonly FBXClassType FClass = FBXClassType.Deformer;
+
 		public override FBXObjectType Type => Cluster.FType;
+
+		public override FBXClassType Class => Cluster.FClass;
 
 		public Matrix4x4 Transform { get; set; }
 
@@ -35,6 +39,9 @@ namespace FBXSharp.Objective
 		//virtual Matrix getTransformLinkMatrix() const = 0;
 		//virtual const Object* getLink() const = 0;
 
-		public override IElement AsElement(bool binary) => throw new System.NotImplementedException();
+		public override IElement AsElement(bool binary)
+		{
+			return new Element(this.Class.ToString(), null, this.BuildAttributes("SubDeformer", this.Type.ToString(), binary)); // #TODO
+		}
 	}
 }

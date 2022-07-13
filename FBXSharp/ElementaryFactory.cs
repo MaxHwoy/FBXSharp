@@ -254,6 +254,54 @@ namespace FBXSharp
 			return true;
 		}
 
+		public static bool ToMatrix4x4(IElementAttribute attribute, out Matrix4x4 matrix)
+		{
+			Array array;
+
+			switch (attribute.Type)
+			{
+				case IElementAttributeType.ArrayBoolean:
+				case IElementAttributeType.ArrayInt32:
+				case IElementAttributeType.ArrayInt64:
+				case IElementAttributeType.ArraySingle:
+				case IElementAttributeType.ArrayDouble:
+					array = attribute.GetElementValue() as Array;
+					break;
+
+				default:
+					matrix = default;
+					return false;
+			}
+
+			if (array.Length < 16)
+			{
+				matrix = default;
+				return false;
+			}
+
+			matrix = new Matrix4x4
+			(
+				Convert.ToDouble(array.GetValue(0)),
+				Convert.ToDouble(array.GetValue(1)),
+				Convert.ToDouble(array.GetValue(2)),
+				Convert.ToDouble(array.GetValue(3)),
+				Convert.ToDouble(array.GetValue(4)),
+				Convert.ToDouble(array.GetValue(5)),
+				Convert.ToDouble(array.GetValue(6)),
+				Convert.ToDouble(array.GetValue(7)),
+				Convert.ToDouble(array.GetValue(8)),
+				Convert.ToDouble(array.GetValue(9)),
+				Convert.ToDouble(array.GetValue(10)),
+				Convert.ToDouble(array.GetValue(11)),
+				Convert.ToDouble(array.GetValue(12)),
+				Convert.ToDouble(array.GetValue(13)),
+				Convert.ToDouble(array.GetValue(14)),
+				Convert.ToDouble(array.GetValue(15))
+			);
+
+			return true;
+		}
+
 		public static bool ToInt32Array(IElementAttribute attribute, out int[] array)
 		{
 			switch (attribute.Type)

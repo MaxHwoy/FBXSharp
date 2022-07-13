@@ -2,27 +2,17 @@
 using FBXSharp.Objective;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace FBXSharp
 {
 	public class Scene : IScene
 	{
-		public enum TemplateCreationType
-		{
-			DontCreateIfDuplicated,
-			MergeIfExistingIsFound,
-			NewOverrideAnyExisting,
-		}
-
 		private readonly Root m_root;
 		private readonly GlobalSettings m_settings;
 		private readonly List<FBXObject> m_objects;
 		private readonly List<TakeInfo> m_takeInfos;
 		private readonly List<TemplateObject> m_templates;
-		private readonly ReadOnlyCollection<FBXObject> m_readonlyObjects;
-		private readonly ReadOnlyCollection<TakeInfo> m_readonlyTakeInfos;
-		private readonly ReadOnlyCollection<TemplateObject> m_readonlyTemplates;
+		private readonly Dictionary<(FBXClassType, FBXObjectType), Func<IElement, FBXObject>> m_activatorMap;
 
 		public Root RootNode => this.m_root;
 
@@ -30,11 +20,11 @@ namespace FBXSharp
 
 		public GlobalSettings Settings => this.m_settings;
 
-		public ReadOnlyCollection<FBXObject> Objects => this.m_readonlyObjects;
+		public IReadOnlyList<FBXObject> Objects => this.m_objects;
 
-		public ReadOnlyCollection<TakeInfo> TakeInfos => this.m_readonlyTakeInfos;
+		public IReadOnlyList<TakeInfo> TakeInfos => this.m_takeInfos;
 
-		public ReadOnlyCollection<TemplateObject> Templates => this.m_readonlyTemplates;
+		public IReadOnlyList<TemplateObject> Templates => this.m_templates;
 
 		public Scene()
 		{
@@ -43,9 +33,56 @@ namespace FBXSharp
 			this.m_takeInfos = new List<TakeInfo>();
 			this.m_templates = new List<TemplateObject>();
 			this.m_settings = new GlobalSettings(null, this);
-			this.m_readonlyObjects = new ReadOnlyCollection<FBXObject>(this.m_objects);
-			this.m_readonlyTakeInfos = new ReadOnlyCollection<TakeInfo>(this.m_takeInfos);
-			this.m_readonlyTemplates = new ReadOnlyCollection<TemplateObject>(this.m_templates);
+
+			this.m_activatorMap = new Dictionary<(FBXClassType, FBXObjectType), Func<IElement, FBXObject>>()
+			{
+				// AnimationCurve
+				{ (FBXClassType.AnimationCurve, FBXObjectType.AnimationCurve), (element) => new AnimationCurve(element, this) },
+
+				// AnimationCurveNode
+				{ (FBXClassType.AnimationCurveNode, FBXObjectType.AnimationCurveNode), (element) => new AnimationCurveNode(element, this) },
+
+				// AnimationLayer
+				{ (FBXClassType.AnimationLayer, FBXObjectType.AnimationLayer), (element) => new AnimationLayer(element, this) },
+
+				// AnimationStack
+				{ (FBXClassType.AnimationStack, FBXObjectType.AnimationStack), (element) => new AnimationStack(element, this) },
+
+				// Deformer
+				{ (FBXClassType.Deformer, FBXObjectType.BlendShape), (element) => new BlendShape(element, this) },
+				{ (FBXClassType.Deformer, FBXObjectType.BlendShapeChannel), (element) => new BlendShapeChannel(element, this) },
+				{ (FBXClassType.Deformer, FBXObjectType.Cluster), (element) => new Cluster(element, this) },
+				{ (FBXClassType.Deformer, FBXObjectType.Skin), (element) => new Skin(element, this) },
+
+				// Geometry
+				{ (FBXClassType.Geometry, FBXObjectType.Mesh), (element) => new Geometry(element, this) },
+				{ (FBXClassType.Geometry, FBXObjectType.Shape), (element) => new Shape(element, this) },
+
+				// Material
+				{ (FBXClassType.Material, FBXObjectType.Material), (element) => new Material(element, this) },
+
+				// Model
+				{ (FBXClassType.Model, FBXObjectType.Camera), (element) => new Camera(element, this) },
+				{ (FBXClassType.Model, FBXObjectType.Light), (element) => new Light(element, this) },
+				{ (FBXClassType.Model, FBXObjectType.LimbNode), (element) => new LimbNode(element, this) },
+				{ (FBXClassType.Model, FBXObjectType.Mesh), (element) => new Mesh(element, this) },
+				{ (FBXClassType.Model, FBXObjectType.Null), (element) => new NullNode(element, this) },
+
+				// NodeAttribute
+				{ (FBXClassType.NodeAttribute, FBXObjectType.Camera), (element) => new CameraAttribute(element, this) },
+				{ (FBXClassType.NodeAttribute, FBXObjectType.Light), (element) => new LightAttribute(element, this) },
+				{ (FBXClassType.NodeAttribute, FBXObjectType.LimbNode), (element) => new LimbNodeAttribute(element, this) },
+				{ (FBXClassType.NodeAttribute, FBXObjectType.Null), (element) => new NullAttribute(element, this) },
+
+				// Pose
+				{ (FBXClassType.Pose, FBXObjectType.BindPose), (element) => new BindPose(element, this) },
+
+				// Texture
+				{ (FBXClassType.Texture, FBXObjectType.Texture), (element) => new Texture(element, this) },
+
+				// Video
+				{ (FBXClassType.Video, FBXObjectType.Clip), (element) => new Clip(element, this) },
+			};
 		}
 
 		private T AddObjectAndReturn<T>(T value) where T : FBXObject
@@ -58,16 +95,19 @@ namespace FBXSharp
 		internal void InternalSetTakeInfos(TakeInfo[] takeInfos) => this.m_takeInfos.AddRange(takeInfos ?? Array.Empty<TakeInfo>());
 		internal void InternalSetTemplates(TemplateObject[] templates) => this.m_templates.AddRange(templates ?? Array.Empty<TemplateObject>());
 
-		public TemplateObject GetTemplateObject(string name) => this.m_templates.Find(_ => _.Name == name);
-		public TemplateObject GetTemplateObject(FBXObjectType objectType) => this.m_templates.Find(_ => _.OverridableType == objectType);
+		public void AddTakeInfo(TakeInfo takeInfo) => this.m_takeInfos.Add(takeInfo);
+		public void RemoveTakeInfo(TakeInfo takeInfo) => this.m_takeInfos.Remove(takeInfo);
 
-		public TemplateObject CreateEmptyTemplate(FBXObjectType objectType, TemplateCreationType creationType)
+		public TemplateObject GetTemplateObject(string name) => this.m_templates.Find(_ => _.Name == name);
+		public TemplateObject GetTemplateObject(FBXClassType classType) => this.m_templates.Find(_ => _.OverridableType == classType);
+
+		public TemplateObject CreateEmptyTemplate(FBXClassType classType, TemplateCreationType creationType)
 		{
-			var template = this.m_templates.Find(_ => _.OverridableType == objectType);
+			var template = this.m_templates.Find(_ => _.OverridableType == classType);
 
 			if (template is null)
 			{
-				this.m_templates.Add(template = new TemplateObject(objectType, null, this));
+				this.m_templates.Add(template = new TemplateObject(classType, null, this));
 
 				return template;
 			}
@@ -82,13 +122,13 @@ namespace FBXSharp
 				return template;
 			}
 		}
-		public TemplateObject CreatePredefinedTemplate(FBXObjectType objectType, TemplateCreationType creationType)
+		public TemplateObject CreatePredefinedTemplate(FBXClassType classType, TemplateCreationType creationType)
 		{
-			var indexer = this.m_templates.FindIndex(_ => _.OverridableType == objectType);
+			var indexer = this.m_templates.FindIndex(_ => _.OverridableType == classType);
 
 			if (indexer < 0)
 			{
-				var template = TemplateFactory.GetTemplateForType(objectType, this);
+				var template = TemplateFactory.GetTemplateForType(classType, this);
 
 				this.m_templates.Add(template);
 
@@ -103,14 +143,14 @@ namespace FBXSharp
 
 				if (creationType == TemplateCreationType.NewOverrideAnyExisting)
 				{
-					this.m_templates[indexer] = TemplateFactory.GetTemplateForType(objectType, this);
+					this.m_templates[indexer] = TemplateFactory.GetTemplateForType(classType, this);
 
 					return this.m_templates[indexer];
 				}
 
 				if (creationType == TemplateCreationType.MergeIfExistingIsFound)
 				{
-					this.m_templates[indexer].MergeWith(TemplateFactory.GetTemplateForType(objectType, null));
+					this.m_templates[indexer].MergeWith(TemplateFactory.GetTemplateForType(classType, null));
 
 					return this.m_templates[indexer];
 				}
@@ -119,38 +159,52 @@ namespace FBXSharp
 			}
 		}
 
-		public FBXObject CreateFBXObject(FBXObjectType type)
+		public FBXObject CreateFBXObject(FBXClassType classType, FBXObjectType objectType, IElement element = null)
 		{
-			switch (type)
+			if (this.m_activatorMap.TryGetValue((classType, objectType), out var activator))
 			{
-				case FBXObjectType.Video: return this.CreateVideo();
-				case FBXObjectType.Texture: return this.CreateTexture();
-				case FBXObjectType.Material: return this.CreateMaterial();
-				case FBXObjectType.Geometry: return this.CreateGeometry();
-				case FBXObjectType.Shape: return this.CreateShape();
+				return this.AddObjectAndReturn(activator(element));
+			}
 
-				case FBXObjectType.Cluster: return this.CreateCluster();
-				case FBXObjectType.Skin: return this.CreateSkin();
-				case FBXObjectType.BlendShape: return this.CreateBlendShape();
-				case FBXObjectType.BlendShapeChannel: return this.CreateBlendShapeChannel();
+			return null;
+		}
 
-				case FBXObjectType.AnimationStack: return this.CreateAnimationStack();
-				case FBXObjectType.AnimationLayer: return this.CreateAnimationLayer();
-				case FBXObjectType.AnimationCurve: return this.CreateAnimationCurve();
-				case FBXObjectType.AnimationCurveNode: return this.CreateAnimationCurveNode();
+		public void DestroyFBXObject(FBXObject @object)
+		{
+			if (@object is null)
+			{
+				return;
+			}
 
-				case FBXObjectType.Pose:
-				case FBXObjectType.Deformer:
-				default: return null;
+			if (this.m_objects.Remove(@object))
+			{
+				@object.Destroy();
 			}
 		}
 
-		public Video CreateVideo() => this.AddObjectAndReturn(new Video(null, this));
+		public void RegisterObjectType<T>(FBXClassType classType, FBXObjectType objectType) where T : FBXObject
+		{
+			this.m_activatorMap[(classType, objectType)] = (element) => (T)Activator.CreateInstance(typeof(T), new object[] { element, this });
+		}
+		public void RegisterObjectType<T>(FBXClassType classType, FBXObjectType objectType, Func<IElement, T> activator) where T : FBXObject
+		{
+			if (activator is null)
+			{
+				this.RegisterObjectType<T>(classType, objectType);
+			}
+			else
+			{
+				this.m_activatorMap[(classType, objectType)] = activator;
+			}
+		}
+
+		public Clip CreateVideo() => this.AddObjectAndReturn(new Clip(null, this));
 		public Texture CreateTexture() => this.AddObjectAndReturn(new Texture(null, this));
 		public Material CreateMaterial() => this.AddObjectAndReturn(new Material(null, this));
 		public Geometry CreateGeometry() => this.AddObjectAndReturn(new Geometry(null, this));
 		public Shape CreateShape() => this.AddObjectAndReturn(new Shape(null, this));
 
+		public BindPose CreateBindPose() => this.AddObjectAndReturn(new BindPose(null, this));
 		public Cluster CreateCluster() => this.AddObjectAndReturn(new Cluster(null, this));
 		public Skin CreateSkin() => this.AddObjectAndReturn(new Skin(null, this));
 		public BlendShape CreateBlendShape() => this.AddObjectAndReturn(new BlendShape(null, this));
@@ -169,17 +223,29 @@ namespace FBXSharp
 		public NullAttribute CreateNullAttribute() => this.AddObjectAndReturn(new NullAttribute(null, this));
 		public LightAttribute CreateLightAttribute() => this.AddObjectAndReturn(new LightAttribute(null, this));
 		public CameraAttribute CreateCameraAttribute() => this.AddObjectAndReturn(new CameraAttribute(null, this));
+		public LimbNodeAttribute CreateLimbNodeAttribute() => this.AddObjectAndReturn(new LimbNodeAttribute(null, this));
 
-		public void DestroyFBXObject(FBXObject @object)
+		public IEnumerable<T> GetObjectsOfType<T>() where T : FBXObject
 		{
-			if (@object is null)
+			for (int i = 0; i < this.m_objects.Count; ++i)
 			{
-				return;
+				if (this.m_objects[i] is T @object)
+				{
+					yield return @object;
+				}
 			}
+		}
 
-			if (this.m_objects.Remove(@object))
+		public IEnumerable<FBXObject> GetObjectsOfType(FBXClassType classType, FBXObjectType objectType)
+		{
+			for (int i = 0; i < this.m_objects.Count; ++i)
 			{
-				@object.Destroy();
+				var @object = this.m_objects[i];
+
+				if (@object.Class == classType && @object.Type == objectType)
+				{
+					yield return this.m_objects[i];
+				}
 			}
 		}
 	}

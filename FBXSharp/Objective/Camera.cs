@@ -6,40 +6,28 @@ namespace FBXSharp.Objective
 {
 	public class Camera : Model
 	{
-		private CameraAttribute m_attribute;
+		public static readonly FBXObjectType FType = FBXObjectType.Camera;
+
+		public override FBXObjectType Type => Camera.FType;
 
 		public override bool SupportsAttribute => true;
-
-		public override NodeAttribute Attribute
-		{
-			get => this.m_attribute;
-			set => this.SetNodeAttribute(value);
-		}
 
 		internal Camera(IElement element, IScene scene) : base(element, scene)
 		{
 		}
 
-		private void SetNodeAttribute(NodeAttribute attribute)
-		{
-			if (attribute is CameraAttribute camera)
-			{
-				this.m_attribute = camera;
-			}
-			else
-			{
-				throw new ArgumentException("Node Attribute passed should be of CameraAttribute type");
-			}
-		}
-
 		public override IElement AsElement(bool binary)
 		{
-			return this.MakeElement("Camera", binary);
+			return this.MakeElement("Model", binary);
 		}
 	}
 
 	public class CameraAttribute : NodeAttribute
 	{
+		public static readonly FBXObjectType FType = FBXObjectType.Camera;
+
+		public override FBXObjectType Type => CameraAttribute.FType;
+
 		public Vector3 Position { get; set; }
 
 		public Vector3 Up { get; set; }
@@ -181,7 +169,7 @@ namespace FBXSharp.Objective
 			elements[7] = Element.WithAttribute(nameof(this.ShowAudio), ElementaryFactory.GetElementAttribute(this.ShowAudio));
 			elements[9] = Element.WithAttribute(nameof(this.CameraOrthoZoom), ElementaryFactory.GetElementAttribute(this.CameraOrthoZoom));
 
-			return new Element("NodeAttribute", elements, this.BuildAttributes("Camera", binary));
+			return new Element(this.Class.ToString(), elements, this.BuildAttributes("NodeAttribute", this.Type.ToString(), binary));
 		}
 	}
 }

@@ -90,7 +90,7 @@ namespace FBXSharp
 			return result;
 		}
 
-		private static IElement GetProperties70(IList<IElementProperty> properties)
+		private static IElement GetProperties70(IReadOnlyList<IElementProperty> properties)
 		{
 			var children = new IElement[properties.Count];
 
@@ -237,21 +237,23 @@ namespace FBXSharp
 
 		private IElement GetDefinitions()
 		{
-			var mapper = new Dictionary<FBXObjectType, int>();
+			int length = 0;
+			var mapper = new int[(int)FBXClassType.Count];
 
-			foreach (var @object in this.m_scene.Objects)
+			for (int i = 0; i < this.m_scene.Objects.Count; ++i)
 			{
-				if (mapper.TryGetValue(@object.Type, out var counter))
+				++mapper[(int)this.m_scene.Objects[i].Class];
+			}
+
+			for (int i = 0; i < mapper.Length; ++i)
+			{
+				if (mapper[i] != 0)
 				{
-					mapper[@object.Type] = ++counter;
-				}
-				else
-				{
-					mapper[@object.Type] = 1;
+					++length;
 				}
 			}
 
-			var templates = new IElement[mapper.Count + 3];
+			var templates = new IElement[length + 3];
 			int tempindex = 3;
 
 			templates[0] = Element.WithAttribute("Version", ElementaryFactory.GetElementAttribute(100));
@@ -259,22 +261,29 @@ namespace FBXSharp
 			templates[2] = new Element("ObjectType", new IElement[]
 			{
 				Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(1)),
-			}, new IElementAttribute[] { ElementaryFactory.GetElementAttribute(FBXObjectType.GlobalSettings.ToString()) });
+			}, new IElementAttribute[] { ElementaryFactory.GetElementAttribute(FBXClassType.GlobalSettings.ToString()) });
 
-			foreach (var pair in mapper)
+			for (FBXClassType type = FBXClassType.Video; type < FBXClassType.Count; ++type)
 			{
+				int count = mapper[(int)type];
+
+				if (count == 0)
+				{
+					continue;
+				}
+
 				var attributes = new IElementAttribute[]
 				{
-					ElementaryFactory.GetElementAttribute(pair.Key.ToString()),
+					ElementaryFactory.GetElementAttribute(type.ToString()),
 				};
 
-				var template = this.m_scene.GetTemplateObject(pair.Key);
+				var template = this.m_scene.GetTemplateObject(type);
 
 				if (template is null)
 				{
 					var elements = new IElement[]
 					{
-						Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(pair.Value)),
+						Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(count)),
 					};
 
 					templates[tempindex++] = new Element("ObjectType", null, attributes);
@@ -283,7 +292,7 @@ namespace FBXSharp
 				{
 					var elements = new IElement[]
 					{
-						Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(pair.Value)),
+						Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(count)),
 						new Element("PropertyTemplate", new IElement[]
 						{
 							FBXExporter7400.GetProperties70(template.Properties),
@@ -402,6 +411,15 @@ namespace FBXSharp
 
 		private static void WriteArrayAttribute<T>(BinaryWriter bw, T[] array, bool compress) where T : unmanaged
 		{
+			if (array.Length == 0)
+			{
+				bw.Write(0); // array length
+				bw.Write(0); // decompressed
+				bw.Write(0); // buffer length
+
+				return;
+			}
+
 			if (compress)
 			{
 				unsafe

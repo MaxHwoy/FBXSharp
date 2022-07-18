@@ -531,6 +531,11 @@ namespace FBXSharp
 						throw new Exception($"Unable to parse vector array in geometry {builder.Target.Name}");
 					}
 
+					if (array.Length == 0)
+					{
+						return;
+					}
+
 					var buffer = new TRead[builder.Remapper.Length];
 
 					for (int i = 0; i < buffer.Length; ++i)
@@ -567,6 +572,11 @@ namespace FBXSharp
 					if (!builder.ArrayGet.Invoke(direct.Attributes[0], out var array))
 					{
 						throw new Exception($"Unable to parse vector array in geometry {builder.Target.Name}");
+					}
+
+					if (array.Length == 0)
+					{
+						return;
 					}
 
 					var buffer = new TRead[builder.Remapper.Length];
@@ -615,6 +625,11 @@ namespace FBXSharp
 					if (!builder.ArrayGet.Invoke(direct.Attributes[0], out var array))
 					{
 						throw new Exception($"Unable to parse vector array in geometry {builder.Target.Name}");
+					}
+
+					if (array.Length == 0)
+					{
+						return;
 					}
 
 					var buffer = new TRead[builder.Remapper.Length];
@@ -729,6 +744,11 @@ namespace FBXSharp
 						throw new Exception($"Unable to parse index array in geometry {builder.Target.Name}");
 					}
 
+					if (array.Length == 0 || indexer.Length == 0)
+					{
+						return;
+					}
+
 					var buffer = new TRead[builder.Remapper.Length];
 
 					for (int i = 0; i < buffer.Length; ++i)
@@ -770,6 +790,11 @@ namespace FBXSharp
 					if (!ElementaryFactory.ToInt32(indexs.Attributes[0], out var index))
 					{
 						throw new Exception($"Unable to get first index value in geometry {builder.Target.Name}");
+					}
+
+					if (index < 0 || index >= array.Length)
+					{
+						return;
 					}
 
 					var buffer = new TRead[builder.Remapper.Length];

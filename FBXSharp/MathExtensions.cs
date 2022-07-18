@@ -169,7 +169,7 @@ namespace FBXSharp
 
 			for (int i = 0; i < index; ++i)
 			{
-				count += array[index].Length;
+				count += array[i].Length;
 			}
 
 			return count;

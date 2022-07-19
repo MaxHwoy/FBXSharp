@@ -27,6 +27,10 @@ namespace FBXSharp.Objective
 
 		internal Shape(IElement element, IScene scene) : base(element, scene)
 		{
+			this.m_indices = Array.Empty<int>();
+			this.m_vertices = Array.Empty<Vector3>();
+			this.m_normals = Array.Empty<Vector3>();
+
 			if (element is null)
 			{
 				return;
@@ -36,30 +40,21 @@ namespace FBXSharp.Objective
 
 			if (!(indices is null) && indices.Attributes.Length > 0 && indices.Attributes[0].Type == IElementAttributeType.ArrayInt32)
 			{
-				if (!ElementaryFactory.ToInt32Array(indices.Attributes[0], out this.m_indices))
-				{
-					this.m_indices = Array.Empty<int>();
-				}
+				_ = ElementaryFactory.ToInt32Array(indices.Attributes[0], out this.m_indices);
 			}
 
-			var vertices = element.FindChild("Vertices");
+			var vertexs = element.FindChild("Vertices");
 
-			if (!(vertices is null) && vertices.Attributes.Length > 0 && vertices.Attributes[0].Type == IElementAttributeType.ArrayDouble)
+			if (!(vertexs is null) && vertexs.Attributes.Length > 0 && vertexs.Attributes[0].Type == IElementAttributeType.ArrayDouble)
 			{
-				if (!ElementaryFactory.ToVector3Array(vertices.Attributes[0], out this.m_vertices))
-				{
-					this.m_vertices = Array.Empty<Vector3>();
-				}
+				_ = ElementaryFactory.ToVector3Array(vertexs.Attributes[0], out this.m_vertices);
 			}
 
 			var normals = element.FindChild("Normals");
 
 			if (!(normals is null) && normals.Attributes.Length > 0 && normals.Attributes[0].Type == IElementAttributeType.ArrayDouble)
 			{
-				if (!ElementaryFactory.ToVector3Array(normals.Attributes[0], out this.m_normals))
-				{
-					this.m_normals = Array.Empty<Vector3>();
-				}
+				_ = ElementaryFactory.ToVector3Array(normals.Attributes[0], out this.m_normals);
 			}
 		}
 
@@ -67,12 +62,16 @@ namespace FBXSharp.Objective
 		{
 			if (indices is null || vertices is null || normals is null)
 			{
+				this.m_indices = Array.Empty<int>();
+				this.m_normals = Array.Empty<Vector3>();
+				this.m_vertices = Array.Empty<Vector3>();
+
 				return;
 			}
 
 			if (indices.Length != vertices.Length || indices.Length != vertices.Length)
 			{
-				return;
+				throw new Exception("Indices, vertices, and normals arrays should all have the same length");
 			}
 
 			this.m_indices = indices;
@@ -82,7 +81,39 @@ namespace FBXSharp.Objective
 
 		public override IElement AsElement(bool binary)
 		{
-			return new Element(this.Class.ToString(), null, this.BuildAttributes("Geometry", this.Type.ToString(), binary)); // #TODO
+			var elements = new IElement[5];
+
+			var indexes = new int[this.m_indices.Length];
+			var vertexs = new double[this.m_vertices.Length * 3];
+			var normals = new double[this.m_normals.Length * 3];
+
+			Array.Copy(this.m_indices, indexes, indexes.Length);
+
+			for (int i = 0, k = 0; i < this.m_vertices.Length; ++i)
+			{
+				var vector = this.m_vertices[i];
+
+				vertexs[k++] = vector.X;
+				vertexs[k++] = vector.Y;
+				vertexs[k++] = vector.Z;
+			}
+
+			for (int i = 0, k = 0; i < this.m_normals.Length; ++i)
+			{
+				var vector = this.m_normals[i];
+
+				normals[k++] = vector.X;
+				normals[k++] = vector.Y;
+				normals[k++] = vector.Z;
+			}
+
+			elements[0] = this.BuildProperties70();
+			elements[1] = Element.WithAttribute("Version", ElementaryFactory.GetElementAttribute(100));
+			elements[2] = Element.WithAttribute("Indexes", ElementaryFactory.GetElementAttribute(indexes));
+			elements[3] = Element.WithAttribute("Vertices", ElementaryFactory.GetElementAttribute(vertexs));
+			elements[4] = Element.WithAttribute("Normals", ElementaryFactory.GetElementAttribute(normals));
+
+			return new Element(this.Class.ToString(), elements, this.BuildAttributes("Geometry", this.Type.ToString(), binary));
 		}
 	}
 }

@@ -8,9 +8,7 @@ namespace FBXSharp.Objective
 	public class Mesh : Model
 	{
 		private readonly List<Material> m_materials;
-		private readonly ReadOnlyCollection<Material> m_readonly;
 		private Geometry m_geometry;
-		private BindPose m_pose;
 
 		public static readonly FBXObjectType FType = FBXObjectType.Mesh;
 
@@ -18,23 +16,20 @@ namespace FBXSharp.Objective
 
 		public override bool SupportsAttribute => false;
 
-		public BindPose Pose => this.m_pose;
+		public Geometry Geometry
+		{
+			get => this.m_geometry;
+			set => this.InternalSetGeometry(value);
+		}
 
-		public Geometry Geometry => this.m_geometry;
-
-		public ReadOnlyCollection<Material> Materials => this.m_readonly;
+		public IReadOnlyList<Material> Materials => this.m_materials;
 
 		internal Mesh(IElement element, IScene scene) : base(element, scene)
 		{
 			this.m_materials = new List<Material>();
-			this.m_readonly = new ReadOnlyCollection<Material>(this.m_materials);
 		}
 
-		internal void InternalSetBindPose(BindPose pose) => this.m_pose = pose;
-		internal void InternalSetGeometry(Geometry geometry) => this.m_geometry = geometry;
-		internal void InternalSetMaterial(Material material) => this.m_materials.Add(material);
-
-		public void SetGeometry(Geometry geometry)
+		private void InternalSetGeometry(Geometry geometry)
 		{
 			if (geometry is null)
 			{
@@ -54,7 +49,7 @@ namespace FBXSharp.Objective
 		{
 			if (material is null)
 			{
-				throw new Exception("Cannot add null material");
+				return;
 			}
 
 			if (material.Scene != this.Scene)
@@ -77,7 +72,7 @@ namespace FBXSharp.Objective
 		{
 			if (material is null)
 			{
-				throw new Exception("Cannot add null material");
+				return;
 			}
 
 			if (material.Scene != this.Scene)
@@ -149,7 +144,7 @@ namespace FBXSharp.Objective
 			{
 				if (linker.Type == FBXObjectType.Mesh)
 				{
-					this.SetGeometry(linker as Geometry);
+					this.InternalSetGeometry(linker as Geometry);
 
 					return;
 				}

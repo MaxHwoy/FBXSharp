@@ -286,7 +286,7 @@ namespace FBXSharp
 						Element.WithAttribute("Count", ElementaryFactory.GetElementAttribute(count)),
 					};
 
-					templates[tempindex++] = new Element("ObjectType", null, attributes);
+					templates[tempindex++] = new Element("ObjectType", elements, attributes);
 				}
 				else
 				{

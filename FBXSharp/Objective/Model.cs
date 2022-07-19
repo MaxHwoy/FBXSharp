@@ -33,7 +33,6 @@ namespace FBXSharp.Objective
 		};
 
 		private readonly List<Model> m_children;
-		private readonly ReadOnlyCollection<Model> m_readonly;
 		private NodeAttribute m_attribute;
 		private Model m_parent;
 
@@ -51,7 +50,7 @@ namespace FBXSharp.Objective
 
 		public Model Parent => this.m_parent;
 
-		public ReadOnlyCollection<Model> Children => this.m_readonly;
+		public IReadOnlyList<Model> Children => this.m_children;
 
 		public ShadingType Shading { get; set; }
 
@@ -144,7 +143,6 @@ namespace FBXSharp.Objective
 		internal Model(IElement element, IScene scene) : base(element, scene)
 		{
 			this.m_children = new List<Model>();
-			this.m_readonly = new ReadOnlyCollection<Model>(this.m_children);
 			this.ParseDepthFields(element);
 		}
 
@@ -299,7 +297,7 @@ namespace FBXSharp.Objective
 		{
 			if (model is null)
 			{
-				throw new ArgumentNullException("Model passed cannot be null");
+				return;
 			}
 
 			if (model.Scene != this.Scene)
@@ -336,7 +334,7 @@ namespace FBXSharp.Objective
 		{
 			if (model is null)
 			{
-				throw new ArgumentNullException("Model passed cannot be null");
+				return;
 			}
 
 			if (model.Scene != this.Scene)
@@ -417,7 +415,7 @@ namespace FBXSharp.Objective
 			var attributeOn = this.SupportsAttribute && !(this.Attribute is null);
 			var connections = new Connection[this.m_children.Count + (attributeOn ? 1 : 0)];
 
-			for (int i = 0; i < connections.Length; ++i)
+			for (int i = 0; i < this.m_children.Count; ++i)
 			{
 				connections[i] = new Connection(Connection.ConnectionType.Object, this.m_children[i].GetHashCode(), this.GetHashCode());
 			}

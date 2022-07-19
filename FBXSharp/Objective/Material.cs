@@ -23,7 +23,6 @@ namespace FBXSharp.Objective
 		}
 
 		private readonly List<Channel> m_channels;
-		private readonly ReadOnlyCollection<Channel> m_readonly;
 		private string m_shadingModel;
 
 		public static readonly FBXObjectType FType = FBXObjectType.Material;
@@ -34,7 +33,7 @@ namespace FBXSharp.Objective
 
 		public override FBXClassType Class => Material.FClass;
 
-		public ReadOnlyCollection<Channel> Channels => this.m_readonly;
+		public IReadOnlyList<Channel> Channels => this.m_channels;
 
 		public string ShadingModel
 		{
@@ -124,7 +123,6 @@ namespace FBXSharp.Objective
 		internal Material(IElement element, IScene scene) : base(element, scene)
 		{
 			this.m_channels = new List<Channel>();
-			this.m_readonly = new ReadOnlyCollection<Channel>(this.m_channels);
 			this.m_shadingModel = "Phong";
 			this.MultiLayer = false; // ??
 
@@ -167,7 +165,7 @@ namespace FBXSharp.Objective
 
 			if (channel.Texture is null)
 			{
-				throw new ArgumentNullException("Texture in the channel passed cannot be null");
+				return;
 			}
 
 			if (channel.Texture.Scene != this.Scene)

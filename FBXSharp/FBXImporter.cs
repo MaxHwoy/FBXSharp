@@ -1368,6 +1368,11 @@ namespace FBXSharp
 				}
 			}
 
+			foreach (var bindPose in scene.GetObjectsOfType<BindPose>())
+			{
+				bindPose.InternalResolveAllBinds(objects); // special bind resolve for inbuilt poses
+			}
+
 			var settings = root.FindChild("GlobalSettings");
 
 			if (!(settings is null))

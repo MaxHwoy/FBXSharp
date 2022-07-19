@@ -1,12 +1,9 @@
 ﻿using FBXSharp.Core;
-using System;
 
 namespace FBXSharp.Objective
 {
 	public class NullNode : Model
 	{
-		private NullAttribute m_attribute;
-
 		public static readonly FBXObjectType FType = FBXObjectType.Null;
 
 		public override FBXObjectType Type => NullNode.FType;
@@ -15,18 +12,6 @@ namespace FBXSharp.Objective
 
 		internal NullNode(IElement element, IScene scene) : base(element, scene)
 		{
-		}
-
-		private void SetNodeAttribute(NodeAttribute attribute)
-		{
-			if (attribute is NullAttribute @null)
-			{
-				this.m_attribute = @null;
-			}
-			else
-			{
-				throw new ArgumentException("Node Attribute passed should be of NullAttribute type");
-			}
 		}
 
 		public override IElement AsElement(bool binary)

@@ -72,15 +72,35 @@ namespace FBXSharp.Objective
 
 		public override FBXClassType Class => Texture.FClass;
 
-		public Clip Data => this.m_video;
+		public Clip Data
+		{
+			get => this.m_video;
+			set => this.InternalSetClip(value);
+		}
 
-		public string AbsolutePath => this.m_absolute;
+		public string AbsolutePath
+		{
+			get => this.m_absolute;
+			set => this.m_absolute = value ?? String.Empty;
+		}
 
-		public string RelativePath => this.m_relative;
+		public string RelativePath
+		{
+			get => this.m_relative;
+			set => this.m_relative = value ?? String.Empty;
+		}
 
-		public string Media => this.m_media;
+		public string Media
+		{
+			get => this.m_media;
+			set => this.m_media = value ?? String.Empty;
+		}
 
-		public string TextureName => this.m_textureName;
+		public string TextureName
+		{
+			get => this.m_textureName;
+			set => this.m_textureName = value ?? String.Empty;
+		}
 
 		public AlphaSourceType? AlphaSource { get; set; }
 
@@ -206,28 +226,11 @@ namespace FBXSharp.Objective
 			}
 		}
 
-		internal void InternalSetVideo(Clip video) => this.m_video = video;
-		internal void InternalSetAbsolutePath(string path) => this.m_absolute = path;
-		internal void InternalSetRelativePath(string path) => this.m_relative = path;
-		internal void InternalSetMediaString(string media) => this.m_media = media;
-		internal void InternalSetTextureName(string name) => this.m_textureName = name;
-
-		public void SetAbsolutePath(string path)
-		{
-			this.m_absolute = path;
-		}
-
-		public void SetRelativePath(string path)
-		{
-			this.m_relative = path;
-		}
-
-		public void SetClip(Clip clip)
+		private void InternalSetClip(Clip clip)
 		{
 			if (clip is null)
 			{
 				this.m_video = null;
-
 				return;
 			}
 
@@ -258,7 +261,7 @@ namespace FBXSharp.Objective
 		{
 			if (linker.Class == FBXClassType.Video && linker.Type == FBXObjectType.Clip)
 			{
-				this.SetClip(linker as Clip);
+				this.InternalSetClip(linker as Clip);
 			}
 		}
 
@@ -351,19 +354,19 @@ namespace FBXSharp.Objective
 			var texture = this.m_scene.CreateTexture();
 
 			texture.Name = this.m_name;
-			texture.InternalSetMediaString(this.m_media ?? String.Empty);
-			texture.InternalSetTextureName(this.m_textureName ?? String.Empty);
+			texture.Media = this.m_media;
+			texture.TextureName = this.m_textureName;
 
 			if (this.m_video is null)
 			{
-				texture.InternalSetAbsolutePath(this.m_absolute ?? String.Empty);
-				texture.InternalSetRelativePath(this.m_relative ?? String.Empty);
+				texture.AbsolutePath = this.m_absolute;
+				texture.RelativePath = this.m_relative;
 			}
 			else
 			{
-				texture.InternalSetVideo(this.m_video);
-				texture.InternalSetAbsolutePath(this.m_video.AbsolutePath);
-				texture.InternalSetRelativePath(this.m_video.RelativePath);
+				texture.Data = this.m_video;
+				texture.AbsolutePath = this.m_video.AbsolutePath;
+				texture.RelativePath = this.m_video.RelativePath;
 				texture.UseMipMap = this.m_video.UsesMipMaps;
 			}
 

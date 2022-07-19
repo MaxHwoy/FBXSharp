@@ -27,7 +27,7 @@ namespace FBXSharp.Objective
 		{
 			if (channel is null)
 			{
-				throw new Exception("Cannot add null blend shape channel");
+				return;
 			}
 
 			if (channel.Scene != this.Scene)
@@ -50,7 +50,7 @@ namespace FBXSharp.Objective
 		{
 			if (channel is null)
 			{
-				throw new Exception("Cannot add null blend shape channel");
+				return;
 			}
 
 			if (channel.Scene != this.Scene)
@@ -73,6 +73,34 @@ namespace FBXSharp.Objective
 			}
 
 			this.m_channels.RemoveAt(index);
+		}
+
+		public override Connection[] GetConnections()
+		{
+			if (this.m_channels.Count == 0)
+			{
+				return Array.Empty<Connection>();
+			}
+			else
+			{
+				int thisHashKey = this.GetHashCode();
+				var connections = new Connection[this.m_channels.Count];
+
+				for (int i = 0; i < connections.Length; ++i)
+				{
+					connections[i] = new Connection(Connection.ConnectionType.Object, this.m_channels[i].GetHashCode(), thisHashKey);
+				}
+
+				return connections;
+			}
+		}
+
+		public override void ResolveLink(FBXObject linker, IElementAttribute attribute)
+		{
+			if (linker.Class == FBXClassType.Deformer && linker.Type == FBXObjectType.BlendShapeChannel)
+			{
+				this.AddChannel(linker as BlendShapeChannel);
+			}
 		}
 
 		public override IElement AsElement(bool binary)

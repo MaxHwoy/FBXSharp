@@ -378,6 +378,7 @@ namespace FBXSharp
 
 		public virtual void ResolveLink(FBXObject linker, IElementAttribute attribute)
 		{
+			throw null;
 		}
 
 		public virtual void Destroy()

@@ -556,6 +556,26 @@ namespace FBXSharp
 				}
 			}
 
+			if (value is Vector2 vector2)
+			{
+				return ElementaryFactory.GetElementAttribute(vector2);
+			}
+
+			if (value is Vector3 vector3)
+			{
+				return ElementaryFactory.GetElementAttribute(vector3);
+			}
+
+			if (value is Vector4 vector4)
+			{
+				return ElementaryFactory.GetElementAttribute(vector4);
+			}
+
+			if (value is Matrix4x4 matrix)
+			{
+				return ElementaryFactory.GetElementAttribute(matrix);
+			}
+
 			return ElementaryFactory.GetElementAttribute(value.ToString());
 		}
 
@@ -682,6 +702,41 @@ namespace FBXSharp
 		public static IElementAttribute GetElementAttribute(double[] value)
 		{
 			return new ArrayDoubleAttribute(value);
+		}
+
+		public static IElementAttribute GetElementAttribute(in Vector2 value)
+		{
+			return new ArrayDoubleAttribute(new double[]
+			{
+				value.X, value.Y,
+			});
+		}
+
+		public static IElementAttribute GetElementAttribute(in Vector3 value)
+		{
+			return new ArrayDoubleAttribute(new double[]
+			{
+				value.X, value.Y, value.Z,
+			});
+		}
+
+		public static IElementAttribute GetElementAttribute(in Vector4 value)
+		{
+			return new ArrayDoubleAttribute(new double[]
+			{
+				value.X, value.Y, value.Z, value.W,
+			});
+		}
+
+		public static IElementAttribute GetElementAttribute(in Matrix4x4 value)
+		{
+			return new ArrayDoubleAttribute(new double[]
+			{
+				value.M11, value.M12, value.M13, value.M14,
+				value.M21, value.M22, value.M23, value.M24,
+				value.M31, value.M32, value.M33, value.M34,
+				value.M41, value.M42, value.M43, value.M44,
+			});
 		}
 	}
 }

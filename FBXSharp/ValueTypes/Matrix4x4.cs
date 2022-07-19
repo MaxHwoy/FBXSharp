@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace FBXSharp.ValueTypes
 {
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public struct Matrix4x4
+	public struct Matrix4x4 : IEquatable<Matrix4x4>
 	{
 		public const int SizeOf = 0x80;
 
@@ -145,23 +146,64 @@ namespace FBXSharp.ValueTypes
 		{
 			return new Matrix4x4
 			(
-				a.M11 * b.M11 + a.M12 * b.M21 + a.M13 * b.M31 + a.M14 * b.M41,
-				a.M11 * b.M12 + a.M12 * b.M22 + a.M13 * b.M32 + a.M14 * b.M42,
-				a.M11 * b.M13 + a.M12 * b.M23 + a.M13 * b.M33 + a.M14 * b.M43,
-				a.M11 * b.M14 + a.M12 * b.M24 + a.M13 * b.M34 + a.M14 * b.M44,
-				a.M21 * b.M11 + a.M22 * b.M21 + a.M23 * b.M31 + a.M24 * b.M41,
-				a.M21 * b.M12 + a.M22 * b.M22 + a.M23 * b.M32 + a.M24 * b.M42,
-				a.M21 * b.M13 + a.M22 * b.M23 + a.M23 * b.M33 + a.M24 * b.M43,
-				a.M21 * b.M14 + a.M22 * b.M24 + a.M23 * b.M34 + a.M24 * b.M44,
-				a.M31 * b.M11 + a.M32 * b.M21 + a.M33 * b.M31 + a.M34 * b.M41,
-				a.M31 * b.M12 + a.M32 * b.M22 + a.M33 * b.M32 + a.M34 * b.M42,
-				a.M31 * b.M13 + a.M32 * b.M23 + a.M33 * b.M33 + a.M34 * b.M43,
-				a.M31 * b.M14 + a.M32 * b.M24 + a.M33 * b.M34 + a.M34 * b.M44,
-				a.M41 * b.M11 + a.M42 * b.M21 + a.M43 * b.M31 + a.M44 * b.M41,
-				a.M41 * b.M12 + a.M42 * b.M22 + a.M43 * b.M32 + a.M44 * b.M42,
-				a.M41 * b.M13 + a.M42 * b.M23 + a.M43 * b.M33 + a.M44 * b.M43,
-				a.M41 * b.M14 + a.M42 * b.M24 + a.M43 * b.M34 + a.M44 * b.M44
+				b.M11 * a.M11 + b.M12 * a.M21 + b.M13 * a.M31 + b.M14 * a.M41,
+				b.M11 * a.M12 + b.M12 * a.M22 + b.M13 * a.M32 + b.M14 * a.M42,
+				b.M11 * a.M13 + b.M12 * a.M23 + b.M13 * a.M33 + b.M14 * a.M43,
+				b.M11 * a.M14 + b.M12 * a.M24 + b.M13 * a.M34 + b.M14 * a.M44,
+				b.M21 * a.M11 + b.M22 * a.M21 + b.M23 * a.M31 + b.M24 * a.M41,
+				b.M21 * a.M12 + b.M22 * a.M22 + b.M23 * a.M32 + b.M24 * a.M42,
+				b.M21 * a.M13 + b.M22 * a.M23 + b.M23 * a.M33 + b.M24 * a.M43,
+				b.M21 * a.M14 + b.M22 * a.M24 + b.M23 * a.M34 + b.M24 * a.M44,
+				b.M31 * a.M11 + b.M32 * a.M21 + b.M33 * a.M31 + b.M34 * a.M41,
+				b.M31 * a.M12 + b.M32 * a.M22 + b.M33 * a.M32 + b.M34 * a.M42,
+				b.M31 * a.M13 + b.M32 * a.M23 + b.M33 * a.M33 + b.M34 * a.M43,
+				b.M31 * a.M14 + b.M32 * a.M24 + b.M33 * a.M34 + b.M34 * a.M44,
+				b.M41 * a.M11 + b.M42 * a.M21 + b.M43 * a.M31 + b.M44 * a.M41,
+				b.M41 * a.M12 + b.M42 * a.M22 + b.M43 * a.M32 + b.M44 * a.M42,
+				b.M41 * a.M13 + b.M42 * a.M23 + b.M43 * a.M33 + b.M44 * a.M43,
+				b.M41 * a.M14 + b.M42 * a.M24 + b.M43 * a.M34 + b.M44 * a.M44
 			);
 		}
+
+		public Vector4 GetRow(int index)
+		{
+			switch (index)
+			{
+				case 1: return new Vector4(this.M11, this.M12, this.M13, this.M14);
+				case 2: return new Vector4(this.M21, this.M22, this.M23, this.M24);
+				case 3: return new Vector4(this.M31, this.M32, this.M33, this.M34);
+				case 4: return new Vector4(this.M41, this.M42, this.M43, this.M44);
+				default: return default;
+			}
+		}
+
+		public bool Equals(Matrix4x4 matrix)
+		{
+			return
+				this.M11 == matrix.M11 &&
+				this.M12 == matrix.M12 &&
+				this.M13 == matrix.M13 &&
+				this.M14 == matrix.M14 &&
+				this.M21 == matrix.M21 &&
+				this.M22 == matrix.M22 &&
+				this.M23 == matrix.M23 &&
+				this.M24 == matrix.M24 &&
+				this.M31 == matrix.M31 &&
+				this.M32 == matrix.M32 &&
+				this.M33 == matrix.M33 &&
+				this.M34 == matrix.M34 &&
+				this.M41 == matrix.M41 &&
+				this.M42 == matrix.M42 &&
+				this.M43 == matrix.M43 &&
+				this.M44 == matrix.M44;
+		}
+
+		public override bool Equals(object obj) => obj is Matrix4x4 matrix && this.Equals(matrix);
+
+		public override int GetHashCode() => (this.GetRow(1), this.GetRow(2), this.GetRow(3), this.GetRow(4)).GetHashCode();
+
+		public static bool operator ==(in Matrix4x4 lhs, in Matrix4x4 rhs) => lhs.Equals(rhs);
+
+		public static bool operator !=(in Matrix4x4 lhs, in Matrix4x4 rhs) => !lhs.Equals(rhs);
 	}
 }

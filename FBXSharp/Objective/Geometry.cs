@@ -62,10 +62,12 @@ namespace FBXSharp.Objective
 			}
 		}
 
+		private readonly List<Channel> m_channels;
+		private SubMesh[] m_subMeshes;
 		private Vector3[] m_vertices;
 		private int[][] m_indices;
-		private SubMesh[] m_subMeshes;
-		private readonly List<Channel> m_channels;
+		private BlendShape m_blendShape;
+		private Skin m_skin;
 
 		public static readonly FBXObjectType FType = FBXObjectType.Mesh;
 
@@ -82,6 +84,18 @@ namespace FBXSharp.Objective
 		public SubMesh[] SubMeshes => this.m_subMeshes;
 
 		public int IndexCount => this.InternalGetIndexCount();
+
+		public BlendShape BlendShape
+		{
+			get => this.m_blendShape;
+			set => this.InternalSetBlendShape(value);
+		}
+
+		public Skin Skin
+		{
+			get => this.m_skin;
+			set => this.InternalSetSkin(value);
+		}
 
 		public IReadOnlyList<Channel> Channels => this.m_channels;
 
@@ -139,6 +153,37 @@ namespace FBXSharp.Objective
 		internal void InternalSetSubMeshes(SubMesh[] subMeshes) => this.m_subMeshes = subMeshes;
 		internal void InternalSetChannel(in Channel channel) => this.m_channels.Add(channel);
 		internal void InternalSortChannels() => this.m_channels.Sort(Geometry.ChannelSorter);
+
+		private void InternalSetBlendShape(BlendShape blendShape)
+		{
+			if (blendShape is null)
+			{
+				this.m_blendShape = null;
+				return;
+			}
+
+			if (blendShape.Scene != this.Scene)
+			{
+				throw new Exception("Blend shape should share same scene with geometry");
+			}
+
+			this.m_blendShape = blendShape;
+		}
+		private void InternalSetSkin(Skin skin)
+		{
+			if (skin is null)
+			{
+				this.m_skin = null;
+				return;
+			}
+
+			if (skin.Scene != this.Scene)
+			{
+				throw new Exception("Skin should share same scene with geometry");
+			}
+
+			this.m_skin = skin;
+		}
 
 		private int[] RecalculateEdges()
 		{
@@ -270,6 +315,49 @@ namespace FBXSharp.Objective
 			});
 		}
 
+		public override Connection[] GetConnections()
+		{
+			bool noShape = this.m_blendShape is null;
+			bool noSkin = this.m_skin is null;
+
+			if (noShape && noSkin)
+			{
+				return Array.Empty<Connection>();
+			}
+
+			var connections = new Connection[(noShape ? 0 : 1) + (noSkin ? 0 : 1)];
+			int thisHashKey = this.GetHashCode();
+			int currentlyAt = 0;
+
+			if (!noShape)
+			{
+				connections[currentlyAt++] = new Connection(Connection.ConnectionType.Object, this.m_blendShape.GetHashCode(), thisHashKey);
+			}
+
+			if (!noSkin)
+			{
+				connections[currentlyAt++] = new Connection(Connection.ConnectionType.Object, this.m_skin.GetHashCode(), thisHashKey);
+			}
+
+			return connections;
+		}
+
+		public override void ResolveLink(FBXObject linker, IElementAttribute attribute)
+		{
+			if (linker.Class == FBXClassType.Deformer)
+			{
+				if (linker.Type == FBXObjectType.BlendShape)
+				{
+					this.InternalSetBlendShape(linker as BlendShape);
+				}
+
+				if (linker.Type == FBXObjectType.Skin)
+				{
+					this.InternalSetSkin(linker as Skin);
+				}
+			}
+		}
+
 		public override IElement AsElement(bool binary)
 		{
 			if (this.m_subMeshes.Length != 0)
@@ -375,6 +463,8 @@ namespace FBXSharp.Objective
 		private readonly List<int[]> m_polygons;
 		private readonly List<Geometry.Channel> m_channels;
 		private readonly List<Geometry.SubMesh> m_subMeshes;
+		private BlendShape m_blendShape;
+		private Skin m_skin;
 
 		public GeometryBuilder(Scene scene) : base(scene)
 		{
@@ -389,6 +479,9 @@ namespace FBXSharp.Objective
 			var geometry = this.m_scene.CreateGeometry();
 
 			geometry.Name = this.m_name;
+			geometry.Skin = this.m_skin;
+			geometry.BlendShape = this.m_blendShape;
+			
 			geometry.InternalSetVertices(this.m_vertices.ToArray());
 			geometry.InternalSetIndices(this.m_polygons.ToArray());
 			geometry.InternalSetSubMeshes(this.m_subMeshes.ToArray());
@@ -528,6 +621,29 @@ namespace FBXSharp.Objective
 		{
 			this.m_subMeshes.Add(subMesh);
 			return this;
+		}
+
+		public GeometryBuilder WithBlendShape(BlendShape blendShape)
+		{
+			if (blendShape is null || blendShape.Scene == this.m_scene)
+			{
+				this.m_blendShape = blendShape;
+
+				return this;
+			}
+
+			throw new ArgumentException("Blend shape should share same scene as the geometry");
+		}
+		public GeometryBuilder WithSkin(Skin skin)
+		{
+			if (skin is null || skin.Scene == this.m_scene)
+			{
+				this.m_skin = skin;
+
+				return this;
+			}
+
+			throw new ArgumentException("Skin should share same scene as the geometry");
 		}
 
 		public GeometryBuilder WithNormals(Vector3[] normals, int layer = 0, string name = "")

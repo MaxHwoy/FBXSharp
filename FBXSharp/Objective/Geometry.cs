@@ -62,12 +62,12 @@ namespace FBXSharp.Objective
 			}
 		}
 
+		private readonly List<BlendShape> m_shapes;
 		private readonly List<Channel> m_channels;
+		private readonly List<Skin> m_skins;
 		private SubMesh[] m_subMeshes;
 		private Vector3[] m_vertices;
 		private int[][] m_indices;
-		private BlendShape m_blendShape;
-		private Skin m_skin;
 
 		public static readonly FBXObjectType FType = FBXObjectType.Mesh;
 
@@ -85,17 +85,9 @@ namespace FBXSharp.Objective
 
 		public int IndexCount => this.InternalGetIndexCount();
 
-		public BlendShape BlendShape
-		{
-			get => this.m_blendShape;
-			set => this.InternalSetBlendShape(value);
-		}
+		public IReadOnlyList<BlendShape> BlendShapes => this.m_shapes;
 
-		public Skin Skin
-		{
-			get => this.m_skin;
-			set => this.InternalSetSkin(value);
-		}
+		public IReadOnlyList<Skin> Skins => this.m_skins;
 
 		public IReadOnlyList<Channel> Channels => this.m_channels;
 
@@ -105,6 +97,8 @@ namespace FBXSharp.Objective
 			this.m_indices = Array.Empty<int[]>();
 			this.m_subMeshes = Array.Empty<SubMesh>();
 			this.m_channels = new List<Channel>();
+			this.m_shapes = new List<BlendShape>();
+			this.m_skins = new List<Skin>();
 		}
 
 		private int InternalGetIndexCount()
@@ -152,38 +146,9 @@ namespace FBXSharp.Objective
 		internal void InternalSetIndices(int[][] indices) => this.m_indices = indices;
 		internal void InternalSetSubMeshes(SubMesh[] subMeshes) => this.m_subMeshes = subMeshes;
 		internal void InternalSetChannel(in Channel channel) => this.m_channels.Add(channel);
+		internal void InternalSetBlendShapes(IEnumerable<BlendShape> blendShapes) => this.m_shapes.AddRange(blendShapes);
+		internal void InternalSetSkins(IEnumerable<Skin> skins) => this.m_skins.AddRange(skins);
 		internal void InternalSortChannels() => this.m_channels.Sort(Geometry.ChannelSorter);
-
-		private void InternalSetBlendShape(BlendShape blendShape)
-		{
-			if (blendShape is null)
-			{
-				this.m_blendShape = null;
-				return;
-			}
-
-			if (blendShape.Scene != this.Scene)
-			{
-				throw new Exception("Blend shape should share same scene with geometry");
-			}
-
-			this.m_blendShape = blendShape;
-		}
-		private void InternalSetSkin(Skin skin)
-		{
-			if (skin is null)
-			{
-				this.m_skin = null;
-				return;
-			}
-
-			if (skin.Scene != this.Scene)
-			{
-				throw new Exception("Skin should share same scene with geometry");
-			}
-
-			this.m_skin = skin;
-		}
 
 		private int[] RecalculateEdges()
 		{
@@ -315,28 +280,109 @@ namespace FBXSharp.Objective
 			});
 		}
 
+		public void AddBlendShape(BlendShape blendShape)
+		{
+			this.AddBlendShapeAt(blendShape, this.m_shapes.Count);
+		}
+		public void RemoveBlendShape(BlendShape blendShape)
+		{
+			if (blendShape is null || blendShape.Scene != this.Scene)
+			{
+				return;
+			}
+
+			_ = this.m_shapes.Remove(blendShape);
+		}
+		public void AddBlendShapeAt(BlendShape blendShape, int index)
+		{
+			if (blendShape is null)
+			{
+				return;
+			}
+
+			if (blendShape.Scene != this.Scene)
+			{
+				throw new Exception("Blend shape should share same scene with geometry");
+			}
+
+			if (index < 0 || index > this.m_shapes.Count)
+			{
+				throw new ArgumentOutOfRangeException("Index should be in range 0 to blend shape count inclusively");
+			}
+
+			this.m_shapes.Insert(index, blendShape);
+		}
+		public void RemoveBlendShapeAt(int index)
+		{
+			if (index < 0 || index >= this.m_shapes.Count)
+			{
+				throw new ArgumentOutOfRangeException("Index should be in 0 to blend shape count range");
+			}
+
+			this.m_shapes.RemoveAt(index);
+		}
+
+		public void AddSkin(Skin skin)
+		{
+			this.AddSkinAt(skin, this.m_skins.Count);
+		}
+		public void RemoveSkin(Skin skin)
+		{
+			if (skin is null || skin.Scene != this.Scene)
+			{
+				return;
+			}
+
+			_ = this.m_skins.Remove(skin);
+		}
+		public void AddSkinAt(Skin skin, int index)
+		{
+			if (skin is null)
+			{
+				return;
+			}
+
+			if (skin.Scene != this.Scene)
+			{
+				throw new Exception("Skin should share same scene with geometry");
+			}
+
+			if (index < 0 || index > this.m_skins.Count)
+			{
+				throw new ArgumentOutOfRangeException("Index should be in range 0 to skin count inclusively");
+			}
+
+			this.m_skins.Insert(index, skin);
+		}
+		public void RemoveSkinAt(int index)
+		{
+			if (index < 0 || index >= this.m_skins.Count)
+			{
+				throw new ArgumentOutOfRangeException("Index should be in 0 to skin count range");
+			}
+
+			this.m_skins.RemoveAt(index);
+		}
+
 		public override Connection[] GetConnections()
 		{
-			bool noShape = this.m_blendShape is null;
-			bool noSkin = this.m_skin is null;
-
-			if (noShape && noSkin)
+			if (this.m_shapes.Count == 0 && this.m_skins.Count == 0)
 			{
 				return Array.Empty<Connection>();
 			}
 
-			var connections = new Connection[(noShape ? 0 : 1) + (noSkin ? 0 : 1)];
-			int thisHashKey = this.GetHashCode();
 			int currentlyAt = 0;
+			int thisHashKey = this.GetHashCode();
+			var connections = new Connection[this.m_shapes.Count + this.m_skins.Count];
 
-			if (!noShape)
+			for (int i = 0; i < this.m_shapes.Count; ++i)
 			{
-				connections[currentlyAt++] = new Connection(Connection.ConnectionType.Object, this.m_blendShape.GetHashCode(), thisHashKey);
+				connections[currentlyAt++] = new Connection(Connection.ConnectionType.Object, this.m_shapes[i].GetHashCode(), thisHashKey);
 			}
 
-			if (!noSkin)
+			for (int i = 0; i < this.m_skins.Count; ++i)
 			{
-				connections[currentlyAt++] = new Connection(Connection.ConnectionType.Object, this.m_skin.GetHashCode(), thisHashKey);
+				connections[currentlyAt++] = new Connection(Connection.ConnectionType.Object, this.m_skins[i].GetHashCode(), thisHashKey);
 			}
 
 			return connections;
@@ -348,12 +394,12 @@ namespace FBXSharp.Objective
 			{
 				if (linker.Type == FBXObjectType.BlendShape)
 				{
-					this.InternalSetBlendShape(linker as BlendShape);
+					this.AddBlendShape(linker as BlendShape);
 				}
 
 				if (linker.Type == FBXObjectType.Skin)
 				{
-					this.InternalSetSkin(linker as Skin);
+					this.AddSkin(linker as Skin);
 				}
 			}
 		}
@@ -463,8 +509,8 @@ namespace FBXSharp.Objective
 		private readonly List<int[]> m_polygons;
 		private readonly List<Geometry.Channel> m_channels;
 		private readonly List<Geometry.SubMesh> m_subMeshes;
-		private BlendShape m_blendShape;
-		private Skin m_skin;
+		private readonly List<BlendShape> m_blendShapes;
+		private readonly List<Skin> m_skins;
 
 		public GeometryBuilder(Scene scene) : base(scene)
 		{
@@ -472,6 +518,8 @@ namespace FBXSharp.Objective
 			this.m_polygons = new List<int[]>();
 			this.m_channels = new List<Geometry.Channel>();
 			this.m_subMeshes = new List<Geometry.SubMesh>();
+			this.m_blendShapes = new List<BlendShape>();
+			this.m_skins = new List<Skin>();
 		}
 
 		public Geometry BuildGeometry()
@@ -479,12 +527,12 @@ namespace FBXSharp.Objective
 			var geometry = this.m_scene.CreateGeometry();
 
 			geometry.Name = this.m_name;
-			geometry.Skin = this.m_skin;
-			geometry.BlendShape = this.m_blendShape;
 			
 			geometry.InternalSetVertices(this.m_vertices.ToArray());
 			geometry.InternalSetIndices(this.m_polygons.ToArray());
 			geometry.InternalSetSubMeshes(this.m_subMeshes.ToArray());
+			geometry.InternalSetBlendShapes(this.m_blendShapes);
+			geometry.InternalSetSkins(this.m_skins);
 
 			int indexCount = geometry.IndexCount;
 
@@ -625,25 +673,35 @@ namespace FBXSharp.Objective
 
 		public GeometryBuilder WithBlendShape(BlendShape blendShape)
 		{
-			if (blendShape is null || blendShape.Scene == this.m_scene)
+			if (blendShape is null)
 			{
-				this.m_blendShape = blendShape;
-
 				return this;
 			}
 
-			throw new ArgumentException("Blend shape should share same scene as the geometry");
+			if (blendShape.Scene != this.m_scene)
+			{
+				throw new ArgumentException("Blend shape should share same scene as the geometry");
+			}
+
+			this.m_blendShapes.Add(blendShape);
+
+			return this;
 		}
 		public GeometryBuilder WithSkin(Skin skin)
 		{
-			if (skin is null || skin.Scene == this.m_scene)
+			if (skin is null)
 			{
-				this.m_skin = skin;
-
 				return this;
 			}
 
-			throw new ArgumentException("Skin should share same scene as the geometry");
+			if (skin.Scene != this.m_scene)
+			{
+				throw new ArgumentException("Skin should share same scene as the geometry");
+			}
+
+			this.m_skins.Add(skin);
+
+			return this;
 		}
 
 		public GeometryBuilder WithNormals(Vector3[] normals, int layer = 0, string name = "")

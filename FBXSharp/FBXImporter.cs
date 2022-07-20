@@ -1364,6 +1364,7 @@ namespace FBXSharp
 				if (objects.TryGetValue(connection.Source, out var src) &&
 					objects.TryGetValue(connection.Destination, out var dst))
 				{
+					dst.NumConnections++;
 					dst.ResolveLink(src, connection.Property);
 				}
 			}

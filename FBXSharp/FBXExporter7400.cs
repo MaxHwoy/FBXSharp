@@ -324,7 +324,14 @@ namespace FBXSharp
 
 			foreach (var @object in this.m_scene.Objects)
 			{
-				connections.AddRange(@object.GetConnections());
+				var addon = @object.GetConnections();
+
+				if (addon.Length != @object.NumConnections)
+				{
+					int fucker = 0;
+				}
+
+				connections.AddRange(addon);
 			}
 
 			var elements = new IElement[connections.Count];

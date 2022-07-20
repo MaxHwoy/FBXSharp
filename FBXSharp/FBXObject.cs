@@ -57,6 +57,8 @@ namespace FBXSharp
 		private readonly List<IElementProperty> m_properties;
 		private IScene m_scene;
 
+		public int NumConnections { get; set; }
+
 		public abstract FBXObjectType Type { get; }
 
 		public abstract FBXClassType Class { get; }

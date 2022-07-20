@@ -42,6 +42,11 @@ namespace FBXSharp.Objective
 		{
 			this.m_bindings = new List<IBinding>();
 
+			if (element is null)
+			{
+				return;
+			}
+
 			var nbPoseNodes = element.FindChild("NbPoseNodes");
 
 			if (nbPoseNodes is null || nbPoseNodes.Attributes.Length == 0)

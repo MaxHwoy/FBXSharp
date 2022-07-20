@@ -37,6 +37,11 @@ namespace FBXSharp.Objective
 
 		internal LimbNodeAttribute(IElement element, IScene scene) : base(element, scene)
 		{
+			if (element is null)
+			{
+				return;
+			}
+
 			var typeFlags = element.FindChild("TypeFlags");
 
 			if (typeFlags is null || typeFlags.Attributes.Length == 0 || typeFlags.Attributes[0].Type != IElementAttributeType.String)

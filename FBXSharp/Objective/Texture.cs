@@ -345,6 +345,8 @@ namespace FBXSharp.Objective
 		private Texture.AlphaSourceType? m_alpha;
 		private Texture.CropBase? m_cropping;
 
+		public Clip Video => this.m_video;
+
 		public TextureBuilder(Scene scene) : base(scene)
 		{
 		}

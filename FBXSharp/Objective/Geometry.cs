@@ -512,6 +512,14 @@ namespace FBXSharp.Objective
 		private readonly List<BlendShape> m_blendShapes;
 		private readonly List<Skin> m_skins;
 
+		public IReadOnlyList<Geometry.Channel> Channels => this.m_channels;
+
+		public IReadOnlyList<Geometry.SubMesh> SubMeshes => this.m_subMeshes;
+
+		public IReadOnlyList<BlendShape> BlendShapes => this.m_blendShapes;
+
+		public IReadOnlyList<Skin> Skins => this.m_skins;
+		
 		public GeometryBuilder(Scene scene) : base(scene)
 		{
 			this.m_vertices = new List<Vector3>();

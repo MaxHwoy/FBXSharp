@@ -22,6 +22,10 @@ namespace FBXSharp.ValueTypes
 
 		public static Vector4 operator -(in Vector4 vector) => new Vector4(-vector.X, -vector.Y, -vector.Z, -vector.W);
 
+		public static Vector4 operator +(in Vector4 a, in Vector4 b) => new Vector4(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
+
+		public static Vector4 operator -(in Vector4 a, in Vector4 b) => new Vector4(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
+
 		public static bool operator ==(in Vector4 lhs, in Vector4 rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;
 
 		public static bool operator !=(in Vector4 lhs, in Vector4 rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Z != rhs.Z || lhs.W != rhs.W;

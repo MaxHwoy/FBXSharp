@@ -400,9 +400,13 @@ namespace FBXSharp
 
 	public abstract class BuilderBase
 	{
-		protected readonly Scene m_scene;
 		protected readonly List<FBXPropertyBase> m_properties;
+		protected readonly Scene m_scene;
 		protected string m_name;
+
+		public string Name => this.m_name;
+
+		public Scene Scene => this.m_scene;
 
 		public BuilderBase(Scene scene)
 		{

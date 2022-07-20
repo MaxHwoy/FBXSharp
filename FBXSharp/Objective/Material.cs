@@ -286,6 +286,8 @@ namespace FBXSharp.Objective
 		private string m_shadingModel;
 		private bool m_multiLayer;
 
+		public IReadOnlyList<Material.Channel> Channels => this.m_channels;
+
 		public MaterialBuilder(Scene scene) : base(scene)
 		{
 			this.m_channels = new List<Material.Channel>();

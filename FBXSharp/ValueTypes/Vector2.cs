@@ -18,6 +18,10 @@ namespace FBXSharp.ValueTypes
 
 		public static Vector2 operator -(in Vector2 vector) => new Vector2(-vector.X, -vector.Y);
 
+		public static Vector2 operator +(in Vector2 a, in Vector2 b) => new Vector2(a.X + b.X, a.Y + b.Y);
+
+		public static Vector2 operator -(in Vector2 a, in Vector2 b) => new Vector2(a.X - b.X, a.Y - b.Y);
+
 		public static bool operator ==(in Vector2 lhs, in Vector2 rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y;
 
 		public static bool operator !=(in Vector2 lhs, in Vector2 rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y;
